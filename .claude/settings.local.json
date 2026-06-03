@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.litchiutilities.com)",
+      "WebFetch(domain:neopilots.com)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(node *)",
+      "Bash(pkill -f \"Sites/litox1/node_modules/electron\")",
+      "Bash(pkill -f \"electron-vite preview\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}b\\\\n\" \"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/7/45/66\")",
+      "Bash(curl -s -A \"Mozilla/5.0\" -o /dev/null -w \"%{http_code} %{size_download}b\\\\n\" \"https://tile.openstreetmap.org/7/66/45.png\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}b\\\\n\" \"https://demotiles.maplibre.org/font/Open%20Sans%20Regular/0-255.pbf\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}b %{content_type}\\\\n\" \"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/2900/4290\")",
+      "Bash(curl -s -A \"litox1/1.0\" -o /dev/null -w \"%{http_code} %{size_download}b %{content_type}\\\\n\" \"https://tile.openstreetmap.org/13/4290/2900.png\")",
+      "Bash(pkill -f \"electron-vite\")"
+    ]
+  }
+}

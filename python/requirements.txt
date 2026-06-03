@@ -1,0 +1,9 @@
+# Detection sidecar dependencies. Install into a venv, then point the app at it:
+#   python3 -m venv python/.venv
+#   python/.venv/bin/pip install -r python/requirements.txt
+#   LITOX1_PYTHON=$(pwd)/python/.venv/bin/python npm run dev
+#
+# (ultralytics pulls in torch, which is a large download.)
+ultralytics>=8.2.0
+opencv-python>=4.9.0
+numpy>=1.26.0

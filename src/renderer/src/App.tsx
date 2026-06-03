@@ -1,0 +1,224 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type {
+  DetectionBackendInfo, Detection, ExportFormat, ExportResult,
+  Field, Flight, FlightProgress, LngLat, MissionParams, MissionPlan
+} from '@shared/types'
+import { DEFAULT_MISSION_PARAMS } from '@shared/types'
+import { api } from './api'
+import MapView, { CLASS_COLORS } from './components/MapView'
+import FieldsView from './components/FieldsView'
+import PlanView from './components/PlanView'
+import FlightsView from './components/FlightsView'
+
+type View = 'fields' | 'plan' | 'flights'
+
+export default function App(): JSX.Element {
+  const [view, setView] = useState<View>('fields')
+  const [basemap, setBasemap] = useState<'satellite' | 'streets'>('satellite')
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const [fields, setFields] = useState<Field[]>([])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const [drawing, setDrawing] = useState(false)
+  const [draft, setDraft] = useState<LngLat[]>([])
+
+  const [params, setParams] = useState<MissionParams>(DEFAULT_MISSION_PARAMS)
+  const [plan, setPlan] = useState<MissionPlan | null>(null)
+  const [exports, setExports] = useState<ExportResult[]>([])
+  const [backend, setBackend] = useState<DetectionBackendInfo | null>(null)
+
+  const [flights, setFlights] = useState<Flight[]>([])
+  const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
+  const [flightDetections, setFlightDetections] = useState<Detection[]>([])
+
+  const [simProgress, setSimProgress] = useState<FlightProgress | null>(null)
+  const [livePos, setLivePos] = useState<LngLat | null>(null)
+
+  const selectedField = useMemo(() => fields.find((f) => f.id === selectedId) ?? null, [fields, selectedId])
+  const selectedFlight = useMemo(() => flights.find((f) => f.id === selectedFlightId) ?? null, [flights, selectedFlightId])
+
+  const reloadFields = useCallback(async () => setFields(await api.fields.list()), [])
+  const reloadFlights = useCallback(async () => setFlights(await api.flights.list()), [])
+
+  const guard = async (fn: () => Promise<void>): Promise<void> => {
+    setBusy(true); setError(null)
+    try { await fn() } catch (e) { setError((e as Error).message) } finally { setBusy(false) }
+  }
+
+  // ---- bootstrap ----
+  useEffect(() => {
+    reloadFields(); reloadFlights()
+    api.system.backend().then(setBackend)
+    const off = api.onFlightProgress((p) => {
+      setSimProgress(p)
+      if (p.position) setLivePos(p.position)
+      if (p.phase === 'done') setTimeout(() => setLivePos(null), 1500)
+    })
+    return off
+  }, [reloadFields, reloadFlights])
+
+  // ---- recompute plan when field/params change ----
+  useEffect(() => {
+    if (!selectedId) { setPlan(null); return }
+    let cancelled = false
+    api.mission.plan(selectedId, params).then((p) => { if (!cancelled) { setPlan(p); setExports([]) } }).catch(() => {})
+    return () => { cancelled = true }
+  }, [selectedId, params])
+
+  // ---- selected flight detail ----
+  useEffect(() => {
+    if (!selectedFlightId) { setFlightDetections([]); return }
+    api.flights.detections(selectedFlightId).then(setFlightDetections)
+  }, [selectedFlightId, flights])
+
+  // ---- field drawing ----
+  const onMapClick = (ll: LngLat): void => { if (drawing) setDraft((d) => [...d, ll]) }
+  const startDraw = (): void => { setDrawing(true); setDraft([]); setSelectedId(null) }
+  const cancelDraw = (): void => { setDrawing(false); setDraft([]) }
+  const undoPoint = (): void => setDraft((d) => d.slice(0, -1))
+
+  const saveField = (name: string, notes: string): void => {
+    guard(async () => {
+      const f = await api.fields.create({ name, notes, polygon: draft })
+      setDrawing(false); setDraft([])
+      await reloadFields()
+      setSelectedId(f.id)
+    })
+  }
+
+  const loadDemo = (): void => {
+    // A ~7 ha meadow near Bern, CH — gives an instantly flyable, countable field.
+    const demo: LngLat[] = [
+      { lng: 7.4205, lat: 46.9485 },
+      { lng: 7.4243, lat: 46.9487 },
+      { lng: 7.4249, lat: 46.9472 },
+      { lng: 7.4233, lat: 46.9463 },
+      { lng: 7.4204, lat: 46.9468 }
+    ]
+    guard(async () => {
+      const f = await api.fields.create({ name: 'Demo meadow (Bern)', notes: 'Sample field for testing', polygon: demo })
+      await reloadFields()
+      setSelectedId(f.id)
+      setView('plan')
+    })
+  }
+
+  const deleteField = (id: string): void => {
+    if (!confirm('Delete this field and its flights?')) return
+    guard(async () => {
+      await api.fields.remove(id)
+      if (selectedId === id) setSelectedId(null)
+      await reloadFields(); await reloadFlights()
+    })
+  }
+
+  // ---- export & fly ----
+  const onExport = (formats: ExportFormat[], chooseDir: boolean): void => {
+    if (!selectedId) return
+    guard(async () => setExports(await api.mission.exportMission(selectedId, params, formats, chooseDir)))
+  }
+
+  const onSimulate = (): void => {
+    if (!selectedId) return
+    setSimProgress(null)
+    guard(async () => {
+      const flight = await api.flights.simulate(selectedId, params)
+      await reloadFlights()
+      setSelectedFlightId(flight.id)
+      setView('flights')
+    })
+  }
+
+  const onImportVideo = (): void => {
+    if (!selectedId) return
+    guard(async () => {
+      const video = await api.system.openVideo()
+      if (!video) return
+      const srt = await api.system.openSrt() // optional; user can cancel
+      const flight = await api.flights.analyzeVideo(selectedId, params, video, srt ?? undefined)
+      await reloadFlights()
+      setSelectedFlightId(flight.id)
+      setView('flights')
+    })
+  }
+
+  const deleteFlight = (id: string): void => {
+    if (!confirm('Delete this flight?')) return
+    guard(async () => {
+      await api.flights.remove(id)
+      setSelectedFlightId(null)
+      await reloadFlights()
+    })
+  }
+
+  // ---- map composition per view ----
+  const mapPath = view === 'flights' ? selectedFlight?.plan.waypoints ?? null : view === 'plan' ? plan?.waypoints ?? null : null
+  const mapDetections = view === 'flights' ? flightDetections : null
+  const mapSelected = view === 'flights' ? selectedFlight?.fieldId ?? null : selectedId
+
+  return (
+    <div className="app">
+      <div className="topbar">
+        <div className="brand">Lito&nbsp;<span>X1</span>&nbsp;Cockpit</div>
+        <div className="nav">
+          <button className={view === 'fields' ? 'active' : ''} onClick={() => setView('fields')}>Fields</button>
+          <button className={view === 'plan' ? 'active' : ''} onClick={() => setView('plan')} disabled={!selectedId}>Plan &amp; Fly</button>
+          <button className={view === 'flights' ? 'active' : ''} onClick={() => { setSelectedFlightId(null); setView('flights') }}>Flights</button>
+        </div>
+        <div className="spacer" />
+        {backend && <div className={`backend-pill ${backend.kind}`}>● {backend.kind === 'yolo' ? 'YOLO ready' : 'Simulator'}</div>}
+      </div>
+
+      <div className="body">
+        <div className="sidebar">
+          {error && <div className="banner err" onClick={() => setError(null)}>{error} <span className="muted">(click to dismiss)</span></div>}
+
+          {view === 'fields' && (
+            <FieldsView
+              fields={fields} selectedId={selectedId} drawing={drawing} draftLen={draft.length}
+              onSelect={(id) => { setSelectedId(id); }} onStartDraw={startDraw} onUndoPoint={undoPoint}
+              onCancelDraw={cancelDraw} onSave={saveField} onDelete={deleteField} onLoadDemo={loadDemo}
+            />
+          )}
+          {view === 'plan' && (
+            <PlanView
+              field={selectedField} params={params} plan={plan} backend={backend} exports={exports}
+              simProgress={simProgress} busy={busy}
+              onParams={(patch) => setParams((p) => ({ ...p, ...patch }))}
+              onExport={onExport} onReveal={api.system.revealPath} onSimulate={onSimulate} onImportVideo={onImportVideo}
+            />
+          )}
+          {view === 'flights' && (
+            <FlightsView
+              flights={flights} selectedId={selectedFlightId} selected={selectedFlight} detections={flightDetections}
+              onSelect={(id) => setSelectedFlightId(id || null)} onDelete={deleteFlight} onReveal={api.system.revealPath}
+            />
+          )}
+        </div>
+
+        <div className="map-wrap">
+          <MapView
+            fields={fields} selectedId={mapSelected} drawing={drawing} draft={draft}
+            path={mapPath} detections={mapDetections} livePosition={livePos} basemap={basemap}
+            onSelectField={(id) => { if (view === 'fields' || view === 'plan') setSelectedId(id) }}
+            onMapClick={onMapClick}
+          />
+          {drawing && <div className="map-hint">Click to add boundary points · {draft.length} placed</div>}
+          <div className="basemap-toggle">
+            <button className={`small ${basemap === 'satellite' ? 'primary' : ''}`} onClick={() => setBasemap('satellite')}>Satellite</button>
+            <button className={`small ${basemap === 'streets' ? 'primary' : ''}`} onClick={() => setBasemap('streets')}>Map</button>
+          </div>
+          {mapDetections && mapDetections.length > 0 && (
+            <div className="legend">
+              {Object.entries(CLASS_COLORS).map(([cls, c]) => (
+                <div className="lg" key={cls}><span className="dot" style={{ background: c }} />{cls}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
