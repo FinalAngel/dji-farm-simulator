@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Field, LngLat } from '@shared/types'
 import FieldStats from './FieldStats'
 
@@ -22,85 +22,108 @@ interface Props {
 }
 
 export default function FieldsView(p: Props): JSX.Element {
+  const [menuId, setMenuId] = useState<string | null>(null)
+
+  // A click anywhere in the sidebar that isn't a field row clears the selection and any open menu.
+  // Scoped to .sidebar so clicks on the map or top bar never trigger a reset.
+  useEffect(() => {
+    const onDown = (e: MouseEvent): void => {
+      const t = e.target as HTMLElement
+      if (!t?.closest || !t.closest('.sidebar') || t.closest('.field-item-wrap')) return
+      setMenuId(null)
+      if (!p.drawing && p.selectedId) p.onClearSelection()
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [p.drawing, p.selectedId, p.onClearSelection])
+
   return (
     <div>
-      <div className="card">
-        <h3>{p.editField ? 'Edit field' : 'Fields'}</h3>
-        {!p.drawing && (
-          <button className="primary" style={{ width: '100%' }} onClick={p.onStartDraw}>
-            + Draw a new field
-          </button>
-        )}
+      {p.drawing ? (
+        <>
+          {/* Instructions + drawing controls, kept separate from the field info below. */}
+          <div className="card">
+            <h3>{p.editField ? 'Edit field' : 'New field'}</h3>
+            <div className="banner info" style={{ marginBottom: 12 }}>
+              Click the map to drop boundary points. Drag a point to move it, shift-click a point to delete it.
+            </div>
+            <div className="row">
+              <button className="small" disabled={p.draft.length === 0} onClick={p.onUndoPoint}>↩ Undo point</button>
+              <button className="small" onClick={p.onCancelDraw}>Cancel</button>
+              <div style={{ alignSelf: 'center', textAlign: 'right' }} className="muted">{p.draft.length} pts</div>
+            </div>
+          </div>
 
-        {p.drawing && (
-          // Keyed so switching between new-draw and editing different fields resets the inputs.
-          <FieldForm
-            key={p.editField?.id ?? 'new'}
-            editing={!!p.editField}
-            initialName={p.editField?.name ?? ''}
-            initialNotes={p.editField?.notes ?? ''}
-            draftLen={p.draft.length}
-            onUndoPoint={p.onUndoPoint}
-            onCancelDraw={p.onCancelDraw}
-            onSave={p.onSave}
-          />
-        )}
-      </div>
+          <div className="card">
+            <h3>Field information</h3>
+            <FieldForm
+              key={p.editField?.id ?? 'new'}
+              editing={!!p.editField}
+              initialName={p.editField?.name ?? ''}
+              initialNotes={p.editField?.notes ?? ''}
+              canSave={p.draft.length >= 3}
+              onSave={p.onSave}
+            />
+          </div>
 
-      {/* Live size readout while drawing/editing. */}
-      {p.drawing && (
-        <div className="card">
-          <h3>Field size</h3>
-          <FieldStats polygon={p.draft} />
-        </div>
-      )}
+          <div className="card">
+            <h3>Field size</h3>
+            <FieldStats polygon={p.draft} />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="plan-head">
+            <div className="plan-name">Fields</div>
+            <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
+              Draw a field boundary to plan coverage flights, count cattle and flag deer.
+            </div>
+          </div>
 
-      {/* List is hidden while drawing/editing so you can't accidentally switch fields and lose progress. */}
-      {!p.drawing && (
-        <div className="field-list">
-          {p.fields.length === 0 && (
-            <div className="empty">
-              No fields yet. Draw your first field above —
-              <br />or
-              <br />
-              <button className="small" style={{ marginTop: 10 }} onClick={p.onLoadDemo}>Load a demo field 🇨🇭</button>
+          {p.fields.length === 0 ? (
+            <div className="empty-state">
+              <div className="ico">🗺️</div>
+              <div className="title">No fields yet</div>
+              <div>Draw your first field below to get started, or load a demo to explore.</div>
+              <button className="small demo" onClick={p.onLoadDemo}>Load a demo field 🇨🇭</button>
+            </div>
+          ) : (
+            <div className="field-list">
+              {p.fields.map((f) => (
+              <div className="field-item-wrap" key={f.id}>
+                <div
+                  className={`field-item ${f.id === p.selectedId ? 'active' : ''}`}
+                  onClick={() => { setMenuId(null); p.onSelect(f.id) }}
+                >
+                  <div className="meta">
+                    <div className="name">{f.name}</div>
+                    <div className="sub">{f.areaHa.toFixed(2)} ha · {f.polygon.length} pts</div>
+                  </div>
+                  <span className="menu-anchor">
+                    <button
+                      className="ghost small"
+                      title="Actions"
+                      aria-label="Field actions"
+                      onClick={(e) => { e.stopPropagation(); setMenuId(menuId === f.id ? null : f.id) }}
+                    >⋮</button>
+                    {menuId === f.id && (
+                      <div className="menu">
+                        <button onClick={(e) => { e.stopPropagation(); setMenuId(null); p.onPlan(f.id) }}>▶ Plan &amp; Fly</button>
+                        <button onClick={(e) => { e.stopPropagation(); setMenuId(null); p.onStartEdit(f.id) }}>✎ Edit</button>
+                        <button className="danger" onClick={(e) => { e.stopPropagation(); setMenuId(null); p.onDelete(f.id) }}>✕ Delete</button>
+                      </div>
+                    )}
+                  </span>
+                </div>
+                </div>
+              ))}
             </div>
           )}
-          {p.fields.map((f) => (
-            <div key={f.id}>
-              <div
-                className={`field-item ${f.id === p.selectedId ? 'active' : ''}`}
-                onClick={() => p.onSelect(f.id)}
-              >
-                <div className="meta">
-                  <div className="name">{f.name}</div>
-                  <div className="sub">{f.areaHa.toFixed(2)} ha · {f.polygon.length} pts</div>
-                </div>
-                <button className="ghost small" title="Edit field" onClick={(e) => { e.stopPropagation(); p.onStartEdit(f.id) }}>✎</button>
-                <button className="ghost small danger" title="Delete field" onClick={(e) => { e.stopPropagation(); p.onDelete(f.id) }}>✕</button>
-              </div>
-              {/* Contextual actions so you don't have to hop up to the nav after selecting. */}
-              {f.id === p.selectedId && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-                  <button
-                    className="primary small"
-                    style={{ flex: 1 }}
-                    onClick={(e) => { e.stopPropagation(); p.onPlan(f.id) }}
-                  >
-                    ▶ Plan &amp; Fly this field →
-                  </button>
-                  <button
-                    className="small"
-                    title="Deselect this field"
-                    onClick={(e) => { e.stopPropagation(); p.onClearSelection() }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+
+          <button className="primary" style={{ width: '100%', marginTop: 14 }} onClick={p.onStartDraw}>
+            + Draw a new field
+          </button>
+        </>
       )}
     </div>
   )
@@ -110,9 +133,7 @@ interface FormProps {
   editing: boolean
   initialName: string
   initialNotes: string
-  draftLen: number
-  onUndoPoint: () => void
-  onCancelDraw: () => void
+  canSave: boolean
   onSave: (name: string, notes: string) => void
 }
 
@@ -122,25 +143,16 @@ function FieldForm(f: FormProps): JSX.Element {
 
   return (
     <div>
-      <div className="banner info">
-        Click the map to drop boundary points. Drag a point to move it, shift-click a point to delete it.
-        Add at least 3, then {f.editing ? 'update' : 'name and save'} the field.
-      </div>
-      <div className="row" style={{ marginBottom: 10 }}>
-        <button className="small" disabled={f.draftLen === 0} onClick={f.onUndoPoint}>↩ Undo point</button>
-        <button className="small" onClick={f.onCancelDraw}>Cancel</button>
-        <div style={{ alignSelf: 'center', textAlign: 'right' }} className="muted">{f.draftLen} pts</div>
-      </div>
       <label>Field name</label>
       <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. North meadow" />
-      <div style={{ height: 8 }} />
+      <div style={{ height: 10 }} />
       <label>Notes (optional)</label>
       <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="Slope, gate location, hazards…" />
-      <div style={{ height: 10 }} />
+      <div style={{ height: 12 }} />
       <button
         className="primary"
         style={{ width: '100%' }}
-        disabled={f.draftLen < 3}
+        disabled={!f.canSave}
         onClick={() => f.onSave(name.trim() || 'Untitled field', notes.trim())}
       >
         {f.editing ? 'Update field' : 'Save field'}

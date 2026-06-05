@@ -21,12 +21,22 @@ export default function FlightsView(p: Props): JSX.Element {
 
   return (
     <div>
-      <div className="card"><h3>Flight history</h3>
-        <div className="muted" style={{ fontSize: 12 }}>Every simulated or analyzed flight is stored here with its counts and footage.</div>
+      <div className="plan-head">
+        <div className="plan-name">Flights</div>
+        <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
+          Every simulated or analyzed flight is stored here with its counts and footage.
+        </div>
       </div>
-      {p.flights.length === 0 && <div className="empty">No flights yet. Plan a field and run a simulation or import a video.</div>}
-      <div className="flight-list">
-        {p.flights.map((f) => (
+
+      {p.flights.length === 0 ? (
+        <div className="empty-state">
+          <div className="ico">🛰️</div>
+          <div className="title">No flights yet</div>
+          <div>Plan a field, then run a simulation or import a video to see results here.</div>
+        </div>
+      ) : (
+        <div className="flight-list">
+          {p.flights.map((f) => (
           <div key={f.id} className={`flight-item ${f.id === p.selectedId ? 'active' : ''}`} onClick={() => p.onSelect(f.id)}>
             <div className="top">
               <strong>{f.fieldName}</strong>
@@ -41,8 +51,9 @@ export default function FlightsView(p: Props): JSX.Element {
               <span className="chip">Σ {f.detectionCount}</span>
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

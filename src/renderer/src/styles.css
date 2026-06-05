@@ -162,7 +162,10 @@ label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px
 }
 .card h3 { margin: 0 0 12px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
 
-.plan-head { margin-bottom: 14px; }
+.plan-head {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;
+}
 .plan-name { font-weight: 700; font-size: 16px; }
 .row { display: flex; gap: 10px; }
 .row > * { flex: 1; }
@@ -177,6 +180,22 @@ label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px
 .field-item .meta { flex: 1; min-width: 0; }
 .field-item .name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .field-item .sub { font-size: 12px; color: var(--muted); }
+.field-item .ghost.small { font-size: 16px; line-height: 1; padding: 2px 8px; color: var(--muted); }
+.field-item .ghost.small:hover:not(:disabled) { color: var(--text); background: var(--bg); }
+
+/* Row actions dropdown (⋮). */
+.menu-anchor { position: relative; display: inline-flex; }
+.menu {
+  position: absolute; top: calc(100% + 4px); right: 0; z-index: 30;
+  min-width: 144px; padding: 4px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  display: flex; flex-direction: column; gap: 2px;
+}
+.menu button { width: 100%; text-align: left; background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
+.menu button:hover:not(:disabled) { background: var(--bg); border-color: transparent; }
+.menu button.danger { color: #ff9b9b; }
+.menu button.danger:hover:not(:disabled) { background: #3a1f1f; }
 
 .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .stat { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
@@ -218,6 +237,13 @@ label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px
 
 .muted { color: var(--muted); }
 .empty { color: var(--muted); text-align: center; padding: 40px 12px; font-size: 13px; }
+.empty-state {
+  text-align: center; color: var(--muted); font-size: 13px; line-height: 1.5;
+  padding: 32px 18px; border: 1px dashed var(--line); border-radius: 10px; background: var(--panel-2);
+}
+.empty-state .ico { font-size: 30px; margin-bottom: 6px; }
+.empty-state .title { color: var(--text); font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.empty-state .demo { margin-top: 16px; }
 video { width: 100%; border-radius: 8px; background: #000; margin-top: 8px; }
 .export-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .export-list a { color: var(--accent); cursor: pointer; font-size: 12px; word-break: break-all; }
