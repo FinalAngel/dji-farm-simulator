@@ -94,6 +94,7 @@ export default function FieldsView(p: Props): JSX.Element {
                 <div
                   className={`field-item ${f.id === p.selectedId ? 'active' : ''}`}
                   onClick={() => { setMenuId(null); p.onSelect(f.id) }}
+                  onDoubleClick={() => p.onPlan(f.id)}
                 >
                   <div className="meta">
                     <div className="name">{f.name}</div>

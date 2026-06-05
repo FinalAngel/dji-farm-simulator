@@ -65,19 +65,27 @@ function Detail(p: Props & { flight: Flight }): JSX.Element {
 
   return (
     <div>
-      <button className="ghost small" onClick={() => p.onSelect('')}>← All flights</button>
-      <div className="card" style={{ marginTop: 8 }}>
-        <h3>{f.fieldName}</h3>
-        <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
-          {fmtDate(f.startedAt ?? f.createdAt)} → {fmtDate(f.endedAt)} · {f.controller} · <span className={`badge ${f.status}`}>{f.status}</span>
+      <button className="small" style={{ marginBottom: 12 }} onClick={() => p.onSelect('')}>← All flights</button>
+
+      <div className="plan-head">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+          <div className="plan-name">{f.fieldName}</div>
+          <span className={`badge ${f.status}`}>{f.status}</span>
         </div>
+        <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>
+          {fmtDate(f.startedAt ?? f.createdAt)} → {fmtDate(f.endedAt)} · {f.controller}
+        </div>
+      </div>
 
-        {deer > 0 && (
-          <div className="banner err" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            🦌 <strong>{deer} deer detected</strong> — verify and clear before mowing. (RGB best-effort; thermal at dawn is more reliable.)
-          </div>
-        )}
+      {deer > 0 && (
+        <div className="banner err">
+          <strong>🦌 {deer} deer detected</strong>
+          <div style={{ marginTop: 4 }}>Verify and clear before mowing. (RGB best-effort; thermal at dawn is more reliable.)</div>
+        </div>
+      )}
 
+      <div className="card">
+        <h3>Detections</h3>
         <div className="stat-grid">
           <div className="stat"><div className="v" style={{ color: CLASS_COLORS.cow }}>{f.stats?.byClass.cow ?? 0}</div><div className="k">🐄 Cows</div></div>
           <div className="stat"><div className="v" style={{ color: CLASS_COLORS.deer }}>{deer}</div><div className="k">🦌 Deer</div></div>
@@ -111,11 +119,12 @@ function Detail(p: Props & { flight: Flight }): JSX.Element {
 
       <div className="card">
         <h3>Mission</h3>
-        <div className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>
-          Altitude {f.plan.params.altitude} m · speed {f.plan.params.speed} m/s · overlap {Math.round(f.plan.params.sidelap * 100)}% · {f.plan.waypoints.length} waypoints
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 }}>
+          <div className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>
+            Altitude {f.plan.params.altitude} m · speed {f.plan.params.speed} m/s · overlap {Math.round(f.plan.params.sidelap * 100)}% · {f.plan.waypoints.length} waypoints
+          </div>
+          <button className="danger small" style={{ flexShrink: 0 }} onClick={() => p.onDelete(f.id)}>Delete flight</button>
         </div>
-        <div style={{ height: 10 }} />
-        <button className="danger small" onClick={() => p.onDelete(f.id)}>Delete flight</button>
       </div>
     </div>
   )
