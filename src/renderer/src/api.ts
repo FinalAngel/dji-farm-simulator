@@ -51,8 +51,10 @@ export interface CockpitApi {
     openVideo(): Promise<string | null>
     openSrt(): Promise<string | null>
     testBridge(baseUrl: string, model?: string): Promise<{ ok: boolean; reason?: string }>
+    installBackend(): Promise<{ ok: boolean; pythonPath?: string; error?: string }>
   }
   onFlightProgress(cb: (p: FlightProgress) => void): () => void
+  onBackendInstallProgress(cb: (line: string) => void): () => void
 }
 
 declare global {

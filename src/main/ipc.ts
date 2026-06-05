@@ -15,6 +15,7 @@ import { offlineController } from './drone/offline'
 import { simulatedController } from './drone/simulated'
 import { BridgeController } from './drone/bridge'
 import { analyzeVideo, checkBackend } from './detection/service'
+import { installBackend } from './detection/install'
 import { computeStats } from './stats'
 import { detections, fields, flights, settings } from './store'
 
@@ -182,6 +183,13 @@ export function registerIpc(): void {
 
   // ---- System / dialogs -----------------------------------------------------
   ipcMain.handle('system:backend', () => checkBackend(settings.get().pythonPath))
+
+  // Install the YOLO backend in-app, streaming progress lines to the renderer.
+  ipcMain.handle('backend:install', async (event) => {
+    const res = await installBackend((line) => event.sender.send('backend:install-progress', line))
+    if (res.ok && res.pythonPath) settings.set({ pythonPath: res.pythonPath })
+    return res
+  })
 
   ipcMain.handle('dialog:openVideo', async () => {
     const win = BrowserWindow.getFocusedWindow()

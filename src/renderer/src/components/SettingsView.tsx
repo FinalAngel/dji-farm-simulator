@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import type { AppSettings, Basemap, DetectionBackendInfo, MissionParams } from '@shared/types'
 import { DRONES } from '@shared/camera'
 
@@ -6,8 +7,11 @@ interface Props {
   backend: DetectionBackendInfo | null
   busy: boolean
   firstRun: boolean
+  installing: boolean
+  installLog: string[]
   onChange: (patch: Partial<AppSettings>) => void
   onRecheckBackend: () => void
+  onInstall: () => void
   onFinish: () => void
 }
 
@@ -25,6 +29,10 @@ export default function SettingsView(p: Props): JSX.Element {
   const s = p.settings
   const setParam = (patch: Partial<MissionParams>): void => p.onChange({ defaultParams: { ...s.defaultParams, ...patch } })
   const yolo = p.backend?.kind === 'yolo'
+
+  // Keep the install log scrolled to the latest line.
+  const logRef = useRef<HTMLPreElement>(null)
+  useEffect(() => { logRef.current?.scrollTo(0, logRef.current.scrollHeight) }, [p.installLog])
 
   return (
     <div>
@@ -72,17 +80,36 @@ export default function SettingsView(p: Props): JSX.Element {
           video: cows count well; deer is RGB best-effort.
         </div>
 
-        <div style={{ height: 12 }} />
-        <label>Python interpreter (for YOLO)</label>
-        <input
-          value={s.pythonPath ?? ''}
-          placeholder="/path/to/python/.venv/bin/python — leave blank to auto-detect"
-          onChange={(e) => p.onChange({ pythonPath: e.target.value || undefined })}
-        />
-        <div className="help">To enable real detection, create a venv and install the detector, then point to it above:</div>
-        <pre className="codeblock">python3 -m venv python/.venv
-python/.venv/bin/pip install -r python/requirements.txt</pre>
-        <button className="small" disabled={p.busy} onClick={p.onRecheckBackend}>↻ Re-check engine</button>
+        {!yolo && (
+          <>
+            <div style={{ height: 12 }} />
+            <button className="primary" style={{ width: '100%' }} disabled={p.installing} onClick={p.onInstall}>
+              {p.installing ? '⏳ Installing… keep the app open' : '⬇ Install detection engine'}
+            </button>
+            <div className="help">
+              Creates a Python environment and installs Ultralytics YOLO + OpenCV (~1 GB download — can take several minutes).
+              Requires Python 3 already on your system.
+            </div>
+          </>
+        )}
+
+        {p.installLog.length > 0 && (
+          <pre className="codeblock log" ref={logRef}>{p.installLog.join('\n')}</pre>
+        )}
+
+        <hr />
+        <details>
+          <summary className="muted" style={{ cursor: 'pointer', fontSize: 12 }}>Advanced — point at an existing Python</summary>
+          <div style={{ height: 10 }} />
+          <label>Python interpreter path</label>
+          <input
+            value={s.pythonPath ?? ''}
+            placeholder="/path/to/.venv/bin/python — leave blank to auto-detect"
+            onChange={(e) => p.onChange({ pythonPath: e.target.value || undefined })}
+          />
+          <div style={{ height: 8 }} />
+          <button className="small" disabled={p.busy || p.installing} onClick={p.onRecheckBackend}>↻ Re-check engine</button>
+        </details>
 
         <div style={{ height: 14 }} />
         <Slider label="Detection confidence" value={Math.round(s.minConfidence * 100)} min={10} max={90} step={5} unit=" %"

@@ -59,12 +59,19 @@ const api = {
     openVideo: (): Promise<string | null> => ipcRenderer.invoke('dialog:openVideo'),
     openSrt: (): Promise<string | null> => ipcRenderer.invoke('dialog:openSrt'),
     testBridge: (baseUrl: string, model?: string): Promise<{ ok: boolean; reason?: string }> =>
-      ipcRenderer.invoke('bridge:test', baseUrl, model)
+      ipcRenderer.invoke('bridge:test', baseUrl, model),
+    installBackend: (): Promise<{ ok: boolean; pythonPath?: string; error?: string }> =>
+      ipcRenderer.invoke('backend:install')
   },
   onFlightProgress: (cb: (p: FlightProgress) => void): (() => void) => {
     const listener = (_e: unknown, p: FlightProgress) => cb(p)
     ipcRenderer.on('flight:progress', listener)
     return () => ipcRenderer.removeListener('flight:progress', listener)
+  },
+  onBackendInstallProgress: (cb: (line: string) => void): (() => void) => {
+    const listener = (_e: unknown, line: string) => cb(line)
+    ipcRenderer.on('backend:install-progress', listener)
+    return () => ipcRenderer.removeListener('backend:install-progress', listener)
   }
 }
 

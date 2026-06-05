@@ -274,4 +274,7 @@ video { width: 100%; border-radius: 8px; background: #000; margin-top: 8px; }
   padding: 10px 12px; margin: 8px 0; white-space: pre-wrap; word-break: break-all;
   color: var(--text); line-height: 1.6;
 }
+.codeblock.log { max-height: 220px; overflow-y: auto; color: var(--muted); font-size: 11px; }
+.codeblock.log::-webkit-scrollbar { width: 9px; }
+.codeblock.log::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; border: 2px solid var(--bg); }
 hr { border: none; border-top: 1px solid var(--line); margin: 14px 0; }

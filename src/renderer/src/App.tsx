@@ -38,6 +38,8 @@ export default function App(): JSX.Element {
   const [settings, setSettings] = useState<AppSettings | null>(null)
   const pendingSettings = useRef<Partial<AppSettings>>({})
   const settingsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [installing, setInstalling] = useState(false)
+  const [installLog, setInstallLog] = useState<string[]>([])
 
   const [flights, setFlights] = useState<Flight[]>([])
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
@@ -66,12 +68,13 @@ export default function App(): JSX.Element {
       setBasemap(s.defaultBasemap)
       if (!s.initialized) setView('settings') // first run → onboarding
     })
-    const off = api.onFlightProgress((p) => {
+    const offFlight = api.onFlightProgress((p) => {
       setSimProgress(p)
       if (p.position) setLivePos(p.position)
       if (p.phase === 'done') setTimeout(() => setLivePos(null), 1500)
     })
-    return off
+    const offInstall = api.onBackendInstallProgress((line) => setInstallLog((l) => [...l, line].slice(-300)))
+    return () => { offFlight(); offInstall() }
   }, [reloadFields, reloadFlights])
 
   // ---- load each field's remembered Plan & Fly settings when it's selected ----
@@ -100,6 +103,25 @@ export default function App(): JSX.Element {
   }
 
   const finishSetup = (): void => { updateSettings({ initialized: true }); setView('fields') }
+
+  const installBackend = async (): Promise<void> => {
+    if (installing) return
+    setInstalling(true)
+    setInstallLog(['Starting installation…'])
+    try {
+      const res = await api.system.installBackend()
+      if (res.ok) {
+        setSettings(await api.settings.get()) // pythonPath was set by the installer
+        setBackend(await api.system.backend())
+      } else {
+        setInstallLog((l) => [...l, `✗ ${res.error ?? 'Installation failed.'}`])
+      }
+    } catch (e) {
+      setInstallLog((l) => [...l, `✗ ${(e as Error).message}`])
+    } finally {
+      setInstalling(false)
+    }
+  }
 
   // ---- recompute plan when field/params change ----
   useEffect(() => {
@@ -294,7 +316,8 @@ export default function App(): JSX.Element {
           {view === 'settings' && settings && (
             <SettingsView
               settings={settings} backend={backend} busy={busy} firstRun={!settings.initialized}
-              onChange={updateSettings} onRecheckBackend={recheckBackend} onFinish={finishSetup}
+              installing={installing} installLog={installLog}
+              onChange={updateSettings} onRecheckBackend={recheckBackend} onInstall={installBackend} onFinish={finishSetup}
             />
           )}
         </div>
