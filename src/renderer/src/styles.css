@@ -140,7 +140,7 @@ label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px
   font-size: 12px; color: var(--muted);
   border: 1px solid var(--line); border-radius: 99px; padding: 4px 10px;
 }
-.backend-pill.yolo { color: var(--ok); border-color: #2c5640; }
+.backend-pill.real { color: var(--ok); border-color: #2c5640; }
 .aircraft-pill {
   display: inline-flex; align-items: center; gap: 7px;
   font-size: 12px; color: var(--text);

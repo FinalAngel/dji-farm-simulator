@@ -1,6 +1,6 @@
 // Synthetic detector. Produces plausible, geolocated detections inside the field so
 // the whole pipeline (storage, stats, map, history) is demonstrable without a real
-// flight or a YOLO install. Used by the simulated controller.
+// flight or a detector install. Used by the simulated controller.
 
 import { randomUUID } from 'node:crypto'
 import type { Detection, DetectionClass, Field } from '../../shared/types'

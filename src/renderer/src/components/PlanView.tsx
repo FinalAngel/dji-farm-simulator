@@ -132,7 +132,7 @@ export default function PlanView(p: Props): JSX.Element {
             </button>
             <div className="help">
               {p.backend
-                ? <>Detection backend: <strong className={p.backend.kind === 'yolo' ? '' : 'muted'}>{p.backend.kind === 'yolo' ? 'YOLO' : 'Simulator/mock'}</strong> — {p.backend.detail}</>
+                ? <>Detection backend: <strong className={p.backend.kind === 'real' ? '' : 'muted'}>{p.backend.kind === 'real' ? 'Ultralytics' : 'Simulator/mock'}</strong> — {p.backend.detail}</>
                 : 'Checking detection backend…'}
             </div>
           </div>

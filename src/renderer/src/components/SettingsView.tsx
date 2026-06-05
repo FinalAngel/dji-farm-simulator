@@ -30,7 +30,7 @@ function Slider(props: { label: string; value: number; min: number; max: number;
 export default function SettingsView(p: Props): JSX.Element {
   const s = p.settings
   const setParam = (patch: Partial<MissionParams>): void => p.onChange({ defaultParams: { ...s.defaultParams, ...patch } })
-  const yolo = p.backend?.kind === 'yolo'
+  const ready = p.backend?.kind === 'real'
 
   // Keep the install log scrolled to the latest line.
   const logRef = useRef<HTMLPreElement>(null)
@@ -81,17 +81,17 @@ export default function SettingsView(p: Props): JSX.Element {
 
       <div className="card" ref={engineRef}>
         <h3>Detection engine</h3>
-        <div className={`banner ${yolo ? 'ok' : 'warn'}`}>
-          <strong>{yolo ? '● Real YOLO detector active' : '● Simulator (mock detections)'}</strong>
+        <div className={`banner ${ready ? 'ok' : 'warn'}`}>
+          <strong>{ready ? '● Real detection active' : '● Simulator (mock detections)'}</strong>
           <div style={{ marginTop: 4 }}>{p.backend?.detail ?? 'Checking…'}</div>
         </div>
         <div className="help" style={{ marginTop: 0 }}>
           The <strong>Simulator</strong> generates synthetic, seeded counts so you can try the whole workflow with no setup —
-          it powers “Simulate flight”. <strong>YOLO</strong> runs real object detection (Ultralytics) on imported flight
+          it powers “Simulate flight”. <strong>Ultralytics</strong> runs real object detection on imported flight
           video: cows count well; deer is RGB best-effort.
         </div>
 
-        {!yolo && (
+        {!ready && (
           <>
             <div style={{ height: 12 }} />
             <button className="primary" style={{ width: '100%' }} disabled={p.installing} onClick={p.onInstall}>
@@ -100,7 +100,7 @@ export default function SettingsView(p: Props): JSX.Element {
             <div style={{ height: 8 }} />
             <button className="small" style={{ width: '100%' }} disabled={p.busy || p.installing} onClick={p.onRecheckBackend}>↻ Re-check engine</button>
             <div className="help">
-              Sets everything up inside the app — creates a Python environment and downloads Ultralytics YOLO + OpenCV
+              Sets everything up inside the app — creates a Python environment and downloads Ultralytics + OpenCV
               (~1 GB, a few minutes). Requires Python 3 on your system.
             </div>
           </>

@@ -298,10 +298,10 @@ export default function App(): JSX.Element {
         {backend && (
           <div
             className={`backend-pill ${backend.kind} tip tip-end`}
-            data-tip={backend.kind === 'yolo' ? 'Real YOLO detector active — click for Settings' : 'Go to settings to install real detection.'}
+            data-tip={backend.kind === 'real' ? 'Real detection active — click for Settings' : 'Go to settings to install real detection.'}
             style={{ cursor: 'pointer' }}
             onClick={() => goToSettings('engine')}
-          >● {backend.kind === 'yolo' ? 'Operational' : 'Simulator'}</div>
+          >● {backend.kind === 'real' ? 'Operational' : 'Simulator'}</div>
         )}
         <button className={`ghost gear ${view === 'settings' ? 'active' : ''}`} title="Settings" aria-label="Settings" onClick={() => setView('settings')}>⚙</button>
       </div>

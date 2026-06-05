@@ -1,4 +1,4 @@
-// In-app setup for the YOLO detection backend. Creates a Python virtual
+// In-app setup for the detection engine. Creates a Python virtual
 // environment in userData and pip-installs the detector's requirements, streaming
 // every line of output so the UI can show live progress. Requires a base Python 3
 // to already be on the system (we can create a venv from it, but can't install the

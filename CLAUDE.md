@@ -20,7 +20,7 @@ Built from scratch in June 2026. Owner is Angelo Dini; the deer use-case is the 
    `DroneController` interface (`src/main/drone/`) is the seam for that future; `bridge.ts` is a
    working client that *refuses* non-MSDK aircraft on purpose.
 2. **Deer detection is RGB best-effort only.** Real fawn rescue uses thermal at dawn; the Lito
-   X1 is RGB and COCO YOLO has no "deer" class. Cows count well (~93–95% in the literature);
+   X1 is RGB and off-the-shelf COCO models have no "deer" class. Cows count well (~93–95% in the literature);
    deer needs a custom/thermal model. The UI says so explicitly — keep that honesty.
 3. **Unattended autonomous flight is illegal in the CH/EASA open category.** Fly exports in
    visual line of sight. This note lives next to the export buttons — don't remove it.
@@ -34,7 +34,7 @@ npm run build          # bundle main + preload + renderer into out/
 npm run typecheck      # tsc --noEmit (clean as of last edit)
 node scripts/smoke.mjs # pure-logic tests (coverage, exports, geolocation, SRT, mock) — 22 checks
 
-# Real YOLO detection (optional — simulator needs none of this):
+# Real detection (optional — simulator needs none of this):
 python3 -m venv python/.venv
 python/.venv/bin/pip install -r python/requirements.txt
 LITOX1_PYTHON="$(pwd)/python/.venv/bin/python" npm run dev
@@ -83,7 +83,7 @@ src/
         MapView.tsx  MapLibre map: field drawing, path preview, detections, live aircraft
         FieldsView.tsx  PlanView.tsx  FlightsView.tsx   (the three sidebar panels)
 python/
-  detect.py          Ultralytics YOLO detector → JSON of {cls, conf, frameTimeS, px, py}
+  detect.py          Ultralytics detector → JSON of {cls, conf, frameTimeS, px, py}
   requirements.txt
 scripts/             smoke.mjs (+ _smoke_entry.ts) — esbuild-bundled logic tests
 ```

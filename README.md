@@ -24,7 +24,7 @@ Draw a field on a map → generate an optimal coverage path → export a DJI-imp
 
 1. **You cannot control a DJI Lito X1 from a desktop app.** DJI's flight-control SDK (Mobile SDK v5) is Android/iOS only and **per-model** — the Lito X1 is *not* supported (it has on-board waypoints in DJI Fly but **no SDK**). Bridges like [DJIControlServer](https://github.com/dkapur17/DJIControlServer) work only on MSDK drones (e.g. Mini 4 Pro). So this app **plans and analyzes**; DJI Fly flies. The `DroneController` abstraction (`src/main/drone/`) leaves a clean seam for a live bridge — see [Live control](#live-control-future-msdk-drones-only).
 
-2. **For deer/fawns, RGB is best-effort — thermal is the real tool.** Swiss *Rehkitzrettung* runs on **thermal cameras at dawn** because fawns freeze and hide in tall grass. The Lito X1 is RGB-only and COCO YOLO has no "deer" class. Cow counting on RGB is solid (~93–95% in the literature); deer detection here is a clearly-labeled best-effort that needs a custom/thermal model to be dependable.
+2. **For deer/fawns, RGB is best-effort — thermal is the real tool.** Swiss *Rehkitzrettung* runs on **thermal cameras at dawn** because fawns freeze and hide in tall grass. The Lito X1 is RGB-only and off-the-shelf COCO models have no "deer" class. Cow counting on RGB is solid (~93–95% in the literature); deer detection here is a clearly-labeled best-effort that needs a custom/thermal model to be dependable.
 
 3. **Unattended autonomous flight isn't legal in the CH/EASA open category.** Fly the exported mission **in visual line of sight**. BVLOS / out-of-sight autonomy is the *specific* category (FOCA authorization).
 
@@ -36,7 +36,7 @@ Draw a field on a map → generate an optimal coverage path → export a DJI-imp
 - 🧭 **Coverage planning** — boustrophedon ("lawnmower") path with altitude, speed, side-overlap, sweep-angle and edge-margin controls, plus flight-time and battery estimates.
 - 📦 **Mission export** — DJI **WPML/KMZ**, **Litchi CSV**, **KML**, **GeoJSON**.
 - ▶️ **Simulate flight** — runs the whole pipeline end-to-end with synthetic, geolocated detections. No hardware, no video, no setup.
-- 🐄 **Real detection (YOLO)** — analyze imported SD-card video; detections are geolocated from the DJI `.SRT` telemetry. **Installable in one click** from Settings.
+- 🐄 **Real detection (Ultralytics)** — analyze imported SD-card video; detections are geolocated from the DJI `.SRT` telemetry. **Installable in one click** from Settings.
 - 🦌 **Deer-safety alert** — flagged prominently on any flight before mowing.
 - 🛩️ **Drone catalog** — pick your DJI aircraft; its camera FOV and flight time feed the planning math.
 - ⚙️ **Settings & first-run setup** — drone, detection engine, default flight parameters, basemap, and a one-click reset.
@@ -67,13 +67,13 @@ On first launch you'll land on a **Settings / welcome** screen to pick your dron
 
 > Map imagery is key-free Esri World Imagery + OpenStreetMap raster tiles.
 
-## 🧠 Real detection (YOLO)
+## 🧠 Real detection (Ultralytics)
 
 The simulator needs nothing. To analyze **real video**, install the detection engine — **right inside the app**:
 
 > **Settings → Detection engine → ⬇ Install detection engine**
 
-This creates a Python virtual environment and installs Ultralytics YOLO + OpenCV (~1 GB; a few minutes), streaming live progress. It only needs **Python 3** already on your system. When it finishes, the top-right badge turns green to **● Operational** and `Plan & Fly → Import flight video` runs real detection (select the DJI `.SRT` sidecar to geolocate the hits).
+This creates a Python virtual environment and installs Ultralytics + OpenCV (~1 GB; a few minutes), streaming live progress. It only needs **Python 3** already on your system. When it finishes, the top-right badge turns green to **● Operational** and `Plan & Fly → Import flight video` runs real detection (select the DJI `.SRT` sidecar to geolocate the hits).
 
 <details>
 <summary>Prefer the command line?</summary>
@@ -108,7 +108,7 @@ npm start            # preview the production build
 | Pixel → GPS geolocation | `src/main/geo/geolocate.ts` |
 | Mission export (WPML/KMZ, Litchi, KML, GeoJSON) | `src/main/export/` |
 | Drone abstraction (offline / simulated / bridge) | `src/main/drone/` |
-| Detection (YOLO sidecar + in-app installer + SRT + mock) | `src/main/detection/`, `python/detect.py` |
+| Detection (Ultralytics sidecar + in-app installer + SRT + mock) | `src/main/detection/`, `python/detect.py` |
 | Settings & storage (JSON, no native deps) | `src/main/store.ts`, `src/main/ipc.ts` |
 | UI (map, planning, flights, settings) | `src/renderer/` |
 
@@ -125,7 +125,7 @@ npm run pack         # unpacked app in release/ (fast sanity check)
 npm run dist         # installers for the current OS (.dmg/.zip, .exe, .AppImage) in release/
 ```
 
-The bundled `python/` detector ships as an `extraResource`, so the in-app YOLO installer works in a packaged build too (the venv is created in the per-user data directory).
+The bundled `python/` detector ships as an `extraResource`, so the in-app installer works in a packaged build too (the venv is created in the per-user data directory).
 
 To cut a cross-platform release, push a tag — the **Release** workflow builds and uploads installers for macOS, Windows and Linux:
 

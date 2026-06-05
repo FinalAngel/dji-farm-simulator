@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-YOLO animal detector for Lito X1 Cockpit.
+Animal detector for DJI Farm Simulator.
 
-Reads a flight video, samples frames at a fixed rate, runs an Ultralytics YOLO
+Reads a flight video, samples frames at a fixed rate, runs an Ultralytics
 model, and prints a JSON array of detections to stdout. Each detection carries the
 frame timestamp and the bounding-box *center pixel*; the Electron app geolocates it
 to lng/lat using the matching .SRT telemetry sample.

@@ -1,4 +1,4 @@
-// Real-video detection pipeline. Spawns the Python/YOLO sidecar to find animals in
+// Real-video detection pipeline. Spawns the Python detection sidecar to find animals in
 // a recorded flight video, then geolocates each detection using the .SRT telemetry.
 // If the sidecar isn't available, callers fall back to the simulator/mock.
 
@@ -42,8 +42,8 @@ export async function checkBackend(pythonPath?: string): Promise<DetectionBacken
     p.on('close', (code) => resolve(code === 0))
   })
   return ok
-    ? { available: true, kind: 'yolo', detail: `YOLO sidecar ready (${py}).` }
-    : { available: false, kind: 'mock', detail: 'Python found, but the YOLO packages aren’t installed yet. Use “Install detection engine” below.' }
+    ? { available: true, kind: 'real', detail: `Ultralytics detector ready (${py}).` }
+    : { available: false, kind: 'mock', detail: 'Python found, but the packages aren’t installed yet. Use “Install detection engine” below.' }
 }
 
 export async function analyzeVideo(
@@ -55,7 +55,7 @@ export async function analyzeVideo(
   const py = pythonExecutable(opts.pythonPath)
   const script = pythonScriptPath()
   if (!py || !existsSync(script)) {
-    throw new Error('Python/YOLO backend unavailable. Install python/requirements.txt or use Simulate.')
+    throw new Error('Detection backend unavailable. Install the packages from Settings, or use Simulate.')
   }
 
   const args = [
@@ -99,8 +99,8 @@ export async function analyzeVideo(
     })
   }
   const backend = telemetry.length
-    ? `YOLO + SRT telemetry (${telemetry.length} samples)`
-    : 'YOLO (no telemetry — detections not geolocated)'
+    ? `Ultralytics + SRT telemetry (${telemetry.length} samples)`
+    : 'Ultralytics (no telemetry — detections not geolocated)'
   return { detections, backend }
 }
 
