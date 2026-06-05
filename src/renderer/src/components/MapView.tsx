@@ -16,6 +16,8 @@ interface Props {
   fields: Field[]
   selectedId: string | null
   drawing: boolean
+  /** Field currently being edited — hidden from the static layer so the draft is the only copy shown. */
+  editingId: string | null
   draft: LngLat[]
   path: Waypoint[] | null
   detections: Detection[] | null
@@ -23,6 +25,8 @@ interface Props {
   basemap: 'satellite' | 'streets'
   onSelectField: (id: string) => void
   onMapClick: (ll: LngLat) => void
+  onMoveDraftPoint: (index: number, ll: LngLat) => void
+  onDeleteDraftPoint: (index: number) => void
 }
 
 const EMPTY = { type: 'FeatureCollection', features: [] } as const
@@ -104,7 +108,7 @@ export default function MapView(props: Props): JSX.Element {
       })
       map.addLayer({ id: 'draft-fill', type: 'fill', source: 'draft', paint: { 'fill-color': '#4cc2ff', 'fill-opacity': 0.15 } })
       map.addLayer({ id: 'draft-line', type: 'line', source: 'draft', paint: { 'line-color': '#4cc2ff', 'line-width': 2, 'line-dasharray': [2, 1] } })
-      map.addLayer({ id: 'draft-pts', type: 'circle', source: 'draft', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 5, 'circle-color': '#4cc2ff', 'circle-stroke-color': '#fff', 'circle-stroke-width': 1.5 } })
+      map.addLayer({ id: 'draft-pts', type: 'circle', source: 'draft', filter: ['==', '$type', 'Point'], paint: { 'circle-radius': 6, 'circle-color': '#4cc2ff', 'circle-stroke-color': '#fff', 'circle-stroke-width': 1.5 } })
 
       map.addLayer({ id: 'path-line', type: 'line', source: 'path', filter: ['==', '$type', 'LineString'], paint: { 'line-color': '#ffd166', 'line-width': 2, 'line-opacity': 0.9 } })
       map.addLayer({ id: 'path-home', type: 'circle', source: 'path', filter: ['==', ['get', 'home'], true], paint: { 'circle-radius': 7, 'circle-color': '#5bd99a', 'circle-stroke-color': '#0f1419', 'circle-stroke-width': 2 } })
@@ -139,6 +143,15 @@ export default function MapView(props: Props): JSX.Element {
       const p = propsRef.current
       const ll = { lng: e.lngLat.lng, lat: e.lngLat.lat }
       if (p.drawing) {
+        const vtx = map.queryRenderedFeatures(e.point, { layers: ['draft-pts'] })
+        if (vtx.length) {
+          // Shift-click a vertex to delete it; a plain click on a vertex is a no-op (drag moves it).
+          if (e.originalEvent.shiftKey) {
+            const i = vtx[0].properties?.i as number | undefined
+            if (i != null) p.onDeleteDraftPoint(i)
+          }
+          return
+        }
         p.onMapClick(ll)
         return
       }
@@ -147,8 +160,32 @@ export default function MapView(props: Props): JSX.Element {
       if (id) p.onSelectField(id)
     })
 
+    // ---- vertex dragging (only while drawing/editing) ----
+    let dragIndex: number | null = null
+    const onDragMove = (e: maplibregl.MapMouseEvent): void => {
+      if (dragIndex == null) return
+      propsRef.current.onMoveDraftPoint(dragIndex, { lng: e.lngLat.lng, lat: e.lngLat.lat })
+    }
+    const onDragEnd = (): void => {
+      dragIndex = null
+      map.getCanvas().style.cursor = ''
+      map.off('mousemove', onDragMove)
+    }
+    map.on('mousedown', 'draft-pts', (e) => {
+      if (!propsRef.current.drawing) return
+      e.preventDefault() // stop the map from panning while we drag the vertex
+      dragIndex = (e.features?.[0]?.properties?.i as number | undefined) ?? null
+      map.getCanvas().style.cursor = 'grabbing'
+      map.on('mousemove', onDragMove)
+      map.once('mouseup', onDragEnd)
+    })
     map.on('mousemove', (e) => {
-      if (propsRef.current.drawing) return
+      if (dragIndex != null) return
+      if (propsRef.current.drawing) {
+        const onVertex = map.queryRenderedFeatures(e.point, { layers: ['draft-pts'] }).length > 0
+        map.getCanvas().style.cursor = onVertex ? 'grab' : 'crosshair'
+        return
+      }
       const hits = map.queryRenderedFeatures(e.point, { layers: ['fields-fill', 'det'] })
       map.getCanvas().style.cursor = hits.length ? 'pointer' : ''
     })
@@ -158,7 +195,7 @@ export default function MapView(props: Props): JSX.Element {
   }, [])
 
   // ---- react to prop changes ----
-  useEffect(() => { if (readyRef.current && mapRef.current) syncFields(mapRef.current, props) }, [props.fields, props.selectedId])
+  useEffect(() => { if (readyRef.current && mapRef.current) syncFields(mapRef.current, props) }, [props.fields, props.selectedId, props.editingId])
   useEffect(() => { if (readyRef.current && mapRef.current) syncDraft(mapRef.current, props) }, [props.draft])
   useEffect(() => { if (readyRef.current && mapRef.current) syncPath(mapRef.current, props) }, [props.path])
   useEffect(() => { if (readyRef.current && mapRef.current) syncDetections(mapRef.current, props) }, [props.detections])
@@ -202,9 +239,9 @@ function ringFeature(poly: LngLat[], props: Record<string, unknown>) {
 function syncFields(map: MlMap, p: Props): void {
   setData(map, 'fields', {
     type: 'FeatureCollection',
-    features: p.fields.filter((f) => f.polygon.length >= 3).map((f) =>
-      ringFeature(f.polygon, { id: f.id, name: f.name, selected: f.id === p.selectedId })
-    )
+    features: p.fields
+      .filter((f) => f.polygon.length >= 3 && f.id !== p.editingId)
+      .map((f) => ringFeature(f.polygon, { id: f.id, name: f.name, selected: f.id === p.selectedId }))
   })
 }
 

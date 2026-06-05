@@ -22,6 +22,7 @@ export default function App(): JSX.Element {
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const [drawing, setDrawing] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [draft, setDraft] = useState<LngLat[]>([])
 
   const [params, setParams] = useState<MissionParams>(DEFAULT_MISSION_PARAMS)
@@ -73,18 +74,38 @@ export default function App(): JSX.Element {
     api.flights.detections(selectedFlightId).then(setFlightDetections)
   }, [selectedFlightId, flights])
 
-  // ---- field drawing ----
+  // ---- field drawing / editing ----
   const onMapClick = (ll: LngLat): void => { if (drawing) setDraft((d) => [...d, ll]) }
-  const startDraw = (): void => { setDrawing(true); setDraft([]); setSelectedId(null) }
-  const cancelDraw = (): void => { setDrawing(false); setDraft([]) }
+  const startDraw = (): void => { setDrawing(true); setEditingId(null); setDraft([]); setSelectedId(null) }
+  const startEdit = (id: string): void => {
+    const f = fields.find((x) => x.id === id)
+    if (!f) return
+    setDrawing(true)
+    setEditingId(id)
+    setDraft(f.polygon.map((p) => ({ ...p })))
+    setSelectedId(id)
+  }
+  const cancelDraw = (): void => { setDrawing(false); setEditingId(null); setDraft([]) }
   const undoPoint = (): void => setDraft((d) => d.slice(0, -1))
+  const moveDraftPoint = (i: number, ll: LngLat): void =>
+    setDraft((d) => d.map((pt, idx) => (idx === i ? ll : pt)))
+  const deleteDraftPoint = (i: number): void =>
+    setDraft((d) => d.filter((_, idx) => idx !== i))
 
   const saveField = (name: string, notes: string): void => {
     guard(async () => {
-      const f = await api.fields.create({ name, notes, polygon: draft })
-      setDrawing(false); setDraft([])
-      await reloadFields()
-      setSelectedId(f.id)
+      if (editingId) {
+        const id = editingId
+        await api.fields.update(id, { name, notes, polygon: draft })
+        setDrawing(false); setEditingId(null); setDraft([])
+        await reloadFields()
+        setSelectedId(id)
+      } else {
+        const f = await api.fields.create({ name, notes, polygon: draft })
+        setDrawing(false); setDraft([])
+        await reloadFields()
+        setSelectedId(f.id)
+      }
     })
   }
 
@@ -178,8 +199,9 @@ export default function App(): JSX.Element {
           {view === 'fields' && (
             <FieldsView
               fields={fields} selectedId={selectedId} drawing={drawing} draftLen={draft.length}
-              onSelect={(id) => { setSelectedId(id); }} onStartDraw={startDraw} onUndoPoint={undoPoint}
-              onCancelDraw={cancelDraw} onSave={saveField} onDelete={deleteField} onLoadDemo={loadDemo}
+              editField={editingId ? selectedField : null}
+              onSelect={(id) => { if (!drawing) setSelectedId(id) }} onStartDraw={startDraw} onStartEdit={startEdit}
+              onUndoPoint={undoPoint} onCancelDraw={cancelDraw} onSave={saveField} onDelete={deleteField} onLoadDemo={loadDemo}
             />
           )}
           {view === 'plan' && (
@@ -200,12 +222,16 @@ export default function App(): JSX.Element {
 
         <div className="map-wrap">
           <MapView
-            fields={fields} selectedId={mapSelected} drawing={drawing} draft={draft}
+            fields={fields} selectedId={mapSelected} drawing={drawing} editingId={editingId} draft={draft}
             path={mapPath} detections={mapDetections} livePosition={livePos} basemap={basemap}
-            onSelectField={(id) => { if (view === 'fields' || view === 'plan') setSelectedId(id) }}
-            onMapClick={onMapClick}
+            onSelectField={(id) => { if (!drawing && (view === 'fields' || view === 'plan')) setSelectedId(id) }}
+            onMapClick={onMapClick} onMoveDraftPoint={moveDraftPoint} onDeleteDraftPoint={deleteDraftPoint}
           />
-          {drawing && <div className="map-hint">Click to add boundary points · {draft.length} placed</div>}
+          {drawing && (
+            <div className="map-hint">
+              Click to add points · drag a point to move · shift-click a point to delete · {draft.length} placed
+            </div>
+          )}
           <div className="basemap-toggle">
             <button className={`small ${basemap === 'satellite' ? 'primary' : ''}`} onClick={() => setBasemap('satellite')}>Satellite</button>
             <button className={`small ${basemap === 'streets' ? 'primary' : ''}`} onClick={() => setBasemap('streets')}>Map</button>

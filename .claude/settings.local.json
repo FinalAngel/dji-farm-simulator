@@ -15,7 +15,10 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}b\\\\n\" \"https://demotiles.maplibre.org/font/Open%20Sans%20Regular/0-255.pbf\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code} %{size_download}b %{content_type}\\\\n\" \"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/2900/4290\")",
       "Bash(curl -s -A \"litox1/1.0\" -o /dev/null -w \"%{http_code} %{size_download}b %{content_type}\\\\n\" \"https://tile.openstreetmap.org/13/4290/2900.png\")",
-      "Bash(pkill -f \"electron-vite\")"
+      "Bash(pkill -f \"electron-vite\")",
+      "Bash(kill %1)",
+      "Bash(pkill -f \"electron-vite dev\")",
+      "Bash(pkill -f \"litox1.*electron\")"
     ]
   }
 }
