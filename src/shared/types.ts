@@ -14,6 +14,8 @@ export interface Field {
   /** Optional launch / return-to-home point. Defaults to polygon centroid if unset. */
   homePoint?: LngLat
   areaHa: number
+  /** Last-used Plan & Fly parameters for this field (remembered per field). */
+  missionParams?: MissionParams
   createdAt: string
   updatedAt: string
 }

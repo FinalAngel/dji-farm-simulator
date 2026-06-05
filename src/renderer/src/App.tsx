@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   DetectionBackendInfo, Detection, ExportFormat, ExportResult,
   Field, Flight, FlightProgress, LngLat, MissionParams, MissionPlan
@@ -26,6 +26,10 @@ export default function App(): JSX.Element {
   const [draft, setDraft] = useState<LngLat[]>([])
 
   const [params, setParams] = useState<MissionParams>(DEFAULT_MISSION_PARAMS)
+  // Per-field Plan & Fly settings, remembered for the session (and persisted to each field).
+  const paramsByField = useRef<Record<string, MissionParams>>({})
+  // One debounce timer per field, so switching fields can't cancel a pending save for another.
+  const persistTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
   const [plan, setPlan] = useState<MissionPlan | null>(null)
   const [exports, setExports] = useState<ExportResult[]>([])
   const [backend, setBackend] = useState<DetectionBackendInfo | null>(null)
@@ -60,6 +64,14 @@ export default function App(): JSX.Element {
     return off
   }, [reloadFields, reloadFlights])
 
+  // ---- load each field's remembered Plan & Fly settings when it's selected ----
+  useEffect(() => {
+    if (!selectedId) return
+    const remembered = paramsByField.current[selectedId]
+    const saved = fields.find((f) => f.id === selectedId)?.missionParams
+    setParams(remembered ?? saved ?? DEFAULT_MISSION_PARAMS)
+  }, [selectedId, fields])
+
   // ---- recompute plan when field/params change ----
   useEffect(() => {
     if (!selectedId) { setPlan(null); return }
@@ -67,6 +79,20 @@ export default function App(): JSX.Element {
     api.mission.plan(selectedId, params).then((p) => { if (!cancelled) { setPlan(p); setExports([]) } }).catch(() => {})
     return () => { cancelled = true }
   }, [selectedId, params])
+
+  // ---- mutate params for the selected field; remember + persist (debounced) ----
+  const updateParams = (patch: Partial<MissionParams>): void => {
+    if (!selectedId) return
+    const id = selectedId
+    const next = { ...params, ...patch }
+    setParams(next)
+    paramsByField.current[id] = next
+    if (persistTimers.current[id]) clearTimeout(persistTimers.current[id])
+    persistTimers.current[id] = setTimeout(() => {
+      delete persistTimers.current[id]
+      api.fields.update(id, { missionParams: next }).catch(() => {})
+    }, 400)
+  }
 
   // ---- selected flight detail ----
   useEffect(() => {
@@ -219,7 +245,7 @@ export default function App(): JSX.Element {
             <PlanView
               field={selectedField} params={params} plan={plan} backend={backend} exports={exports}
               simProgress={simProgress} busy={busy}
-              onParams={(patch) => setParams((p) => ({ ...p, ...patch }))}
+              onParams={updateParams}
               onExport={onExport} onReveal={api.system.revealPath} onSimulate={onSimulate} onImportVideo={onImportVideo}
             />
           )}
