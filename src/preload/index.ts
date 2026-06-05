@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import type {
+  AppSettings,
   DetectionBackendInfo,
   Detection,
   ExportFormat,
@@ -47,6 +48,10 @@ const api = {
       ipcRenderer.invoke('flights:analyzeVideo', fieldId, params, videoPath, telemetryPath),
     detections: (flightId: string): Promise<Detection[]> =>
       ipcRenderer.invoke('detections:list', flightId)
+  },
+  settings: {
+    get: (): Promise<AppSettings> => ipcRenderer.invoke('settings:get'),
+    set: (patch: Partial<AppSettings>): Promise<AppSettings> => ipcRenderer.invoke('settings:set', patch)
   },
   system: {
     backend: (): Promise<DetectionBackendInfo> => ipcRenderer.invoke('system:backend'),

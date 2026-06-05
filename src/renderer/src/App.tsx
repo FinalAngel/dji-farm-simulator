@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
-  DetectionBackendInfo, Detection, ExportFormat, ExportResult,
+  AppSettings, DetectionBackendInfo, Detection, ExportFormat, ExportResult,
   Field, Flight, FlightProgress, LngLat, MissionParams, MissionPlan
 } from '@shared/types'
 import { DEFAULT_MISSION_PARAMS } from '@shared/types'
+import { getDrone } from '@shared/camera'
 import { api } from './api'
 import MapView, { CLASS_COLORS } from './components/MapView'
 import FieldsView from './components/FieldsView'
 import PlanView from './components/PlanView'
 import FlightsView from './components/FlightsView'
+import SettingsView from './components/SettingsView'
 
-type View = 'fields' | 'plan' | 'flights'
+type View = 'fields' | 'plan' | 'flights' | 'settings'
 
 export default function App(): JSX.Element {
   const [view, setView] = useState<View>('fields')
@@ -33,6 +35,9 @@ export default function App(): JSX.Element {
   const [plan, setPlan] = useState<MissionPlan | null>(null)
   const [exports, setExports] = useState<ExportResult[]>([])
   const [backend, setBackend] = useState<DetectionBackendInfo | null>(null)
+  const [settings, setSettings] = useState<AppSettings | null>(null)
+  const pendingSettings = useRef<Partial<AppSettings>>({})
+  const settingsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [flights, setFlights] = useState<Flight[]>([])
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
@@ -56,6 +61,11 @@ export default function App(): JSX.Element {
   useEffect(() => {
     reloadFields(); reloadFlights()
     api.system.backend().then(setBackend)
+    api.settings.get().then((s) => {
+      setSettings(s)
+      setBasemap(s.defaultBasemap)
+      if (!s.initialized) setView('settings') // first run → onboarding
+    })
     const off = api.onFlightProgress((p) => {
       setSimProgress(p)
       if (p.position) setLivePos(p.position)
@@ -69,8 +79,27 @@ export default function App(): JSX.Element {
     if (!selectedId) return
     const remembered = paramsByField.current[selectedId]
     const saved = fields.find((f) => f.id === selectedId)?.missionParams
-    setParams(remembered ?? saved ?? DEFAULT_MISSION_PARAMS)
-  }, [selectedId, fields])
+    setParams(remembered ?? saved ?? settings?.defaultParams ?? DEFAULT_MISSION_PARAMS)
+  }, [selectedId, fields, settings])
+
+  // ---- settings: update local state immediately, persist (debounced, patch-accumulating) ----
+  const updateSettings = (patch: Partial<AppSettings>): void => {
+    setSettings((prev) => (prev ? { ...prev, ...patch } : prev))
+    pendingSettings.current = { ...pendingSettings.current, ...patch }
+    if (settingsTimer.current) clearTimeout(settingsTimer.current)
+    settingsTimer.current = setTimeout(() => {
+      const p = pendingSettings.current
+      pendingSettings.current = {}
+      api.settings.set(p).catch(() => {})
+    }, 300)
+  }
+
+  const recheckBackend = async (): Promise<void> => {
+    if (settings) await api.settings.set({ pythonPath: settings.pythonPath }) // flush before checking
+    setBackend(await api.system.backend())
+  }
+
+  const finishSetup = (): void => { updateSettings({ initialized: true }); setView('fields') }
 
   // ---- recompute plan when field/params change ----
   useEffect(() => {
@@ -220,8 +249,18 @@ export default function App(): JSX.Element {
           </span>
         </div>
         <div className="spacer" />
-        <div className="aircraft-pill" title="Active aircraft profile"><span className="ac-dot" />Lito X1</div>
-        {backend && <div className={`backend-pill ${backend.kind}`}>● {backend.kind === 'yolo' ? 'YOLO ready' : 'Simulator'}</div>}
+        <div className="aircraft-pill tip tip-end" data-tip="Active drone — click to change" style={{ cursor: 'pointer' }} onClick={() => setView('settings')}>
+          <span className="ac-dot" />{settings ? getDrone(settings.droneId).name : 'Lito X1'}
+        </div>
+        {backend && (
+          <div
+            className={`backend-pill ${backend.kind} tip tip-end`}
+            data-tip={backend.kind === 'yolo' ? 'Real YOLO detector active — click for Settings' : 'Mock detections — click to set up real YOLO detection'}
+            style={{ cursor: 'pointer' }}
+            onClick={() => setView('settings')}
+          >● {backend.kind === 'yolo' ? 'YOLO ready' : 'Simulator'}</div>
+        )}
+        <button className={`ghost gear ${view === 'settings' ? 'active' : ''}`} title="Settings" aria-label="Settings" onClick={() => setView('settings')}>⚙</button>
       </div>
 
       <div className="body">
@@ -250,6 +289,12 @@ export default function App(): JSX.Element {
             <FlightsView
               flights={flights} selectedId={selectedFlightId} selected={selectedFlight} detections={flightDetections}
               onSelect={(id) => setSelectedFlightId(id || null)} onDelete={deleteFlight} onReveal={api.system.revealPath}
+            />
+          )}
+          {view === 'settings' && settings && (
+            <SettingsView
+              settings={settings} backend={backend} busy={busy} firstRun={!settings.initialized}
+              onChange={updateSettings} onRecheckBackend={recheckBackend} onFinish={finishSetup}
             />
           )}
         </div>

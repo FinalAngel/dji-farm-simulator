@@ -4,7 +4,9 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
-import type { Detection, Field, Flight } from '../shared/types'
+import type { AppSettings, Detection, Field, Flight } from '../shared/types'
+import { DEFAULT_MISSION_PARAMS } from '../shared/types'
+import { DEFAULT_DRONE_ID } from '../shared/camera'
 import { dataDir } from './paths'
 
 class Collection<T extends { id: string }> {
@@ -91,3 +93,41 @@ class Collection<T extends { id: string }> {
 export const fields = new Collection<Field>('fields.json')
 export const flights = new Collection<Flight>('flights.json')
 export const detections = new Collection<Detection>('detections.json')
+
+const DEFAULT_SETTINGS: AppSettings = {
+  droneId: DEFAULT_DRONE_ID,
+  defaultParams: DEFAULT_MISSION_PARAMS,
+  defaultBasemap: 'satellite',
+  minConfidence: 0.4,
+  initialized: false
+}
+
+// Single-object persistence for app settings (the collections above are array-shaped).
+class SettingsStore {
+  private data: AppSettings | null = null
+  private path(): string {
+    return join(dataDir(), 'settings.json')
+  }
+  get(): AppSettings {
+    if (this.data) return this.data
+    const p = this.path()
+    if (existsSync(p)) {
+      try {
+        this.data = { ...DEFAULT_SETTINGS, ...JSON.parse(readFileSync(p, 'utf8')) }
+      } catch {
+        this.data = { ...DEFAULT_SETTINGS }
+      }
+    } else {
+      this.data = { ...DEFAULT_SETTINGS }
+    }
+    return this.data
+  }
+  set(patch: Partial<AppSettings>): AppSettings {
+    const next = { ...this.get(), ...patch }
+    this.data = next
+    writeFileSync(this.path(), JSON.stringify(next, null, 2))
+    return next
+  }
+}
+
+export const settings = new SettingsStore()

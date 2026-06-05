@@ -3,20 +3,19 @@
 // (-90°) gimbal, which is what coverage flights use.
 
 import type { LngLat } from '../../shared/types'
-import { LITO_X1 } from '../../shared/camera'
+import { LITO_X1, type CameraSpec } from '../../shared/camera'
 import { toLngLat } from './geo'
 
 export function pixelToLngLat(
   drone: { lng: number; lat: number; aglAltitude: number; headingDeg: number },
   px: number,
   py: number,
-  imgW = LITO_X1.videoWidth,
-  imgH = LITO_X1.videoHeight,
-  hfov = LITO_X1.hfovDeg,
-  vfov = LITO_X1.vfovDeg
+  cam: CameraSpec = LITO_X1
 ): LngLat {
-  const footW = 2 * drone.aglAltitude * Math.tan((hfov * Math.PI) / 360)
-  const footH = 2 * drone.aglAltitude * Math.tan((vfov * Math.PI) / 360)
+  const imgW = cam.videoWidth
+  const imgH = cam.videoHeight
+  const footW = 2 * drone.aglAltitude * Math.tan((cam.hfovDeg * Math.PI) / 360)
+  const footH = 2 * drone.aglAltitude * Math.tan((cam.vfovDeg * Math.PI) / 360)
 
   // Offsets in the image plane, metres on the ground.
   const right = ((px - imgW / 2) / imgW) * footW // +x = image right

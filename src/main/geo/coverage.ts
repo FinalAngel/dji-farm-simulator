@@ -7,7 +7,7 @@
 // segments along the sweep direction.
 
 import type { LngLat, MissionParams, MissionPlan, Waypoint } from '../../shared/types'
-import { LITO_X1 } from '../../shared/camera'
+import { LITO_X1, type CameraSpec } from '../../shared/camera'
 import { footprintMeters, lineSpacing } from './footprint'
 import { bearing, centroid, haversine, toLngLat, toLocal, Vec2 } from './geo'
 
@@ -15,7 +15,8 @@ export function planMission(
   fieldId: string,
   polygon: LngLat[],
   params: MissionParams,
-  home?: LngLat
+  home?: LngLat,
+  cam: CameraSpec = LITO_X1
 ): MissionPlan {
   const origin = centroid(polygon)
   const local = polygon.map((p) => toLocal(p, origin))
@@ -34,7 +35,7 @@ export function planMission(
   const minY = Math.min(...ys)
   const maxY = Math.max(...ys)
 
-  const spacing = lineSpacing(params.altitude, params.sidelap)
+  const spacing = lineSpacing(params.altitude, params.sidelap, cam)
   const ordered: Vec2[] = []
   let dir = 1
 
@@ -93,13 +94,13 @@ export function planMission(
   let pathLengthM = 0
   for (let i = 1; i < route.length; i++) pathLengthM += haversine(route[i - 1], route[i])
 
-  const { width } = footprintMeters(params.altitude)
+  const { width } = footprintMeters(params.altitude, cam)
 
   // Time: cruise distance + a fixed turn penalty per strip reversal.
   const turns = Math.max(0, waypoints.length / 2 - 1)
   const estDurationS = pathLengthM / Math.max(1, params.speed) + turns * 3 + 20 /* takeoff/land */
 
-  const usableSeconds = LITO_X1.usableFlightMinutes * 60
+  const usableSeconds = cam.usableFlightMinutes * 60
   const estBatteryPct = (estDurationS / usableSeconds) * 100
   const batteriesNeeded = Math.max(1, Math.ceil(estDurationS / usableSeconds))
 

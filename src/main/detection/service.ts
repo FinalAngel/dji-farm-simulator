@@ -7,6 +7,7 @@ import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import type { Detection, DetectionBackendInfo, DetectionClass } from '../../shared/types'
+import type { CameraSpec } from '../../shared/camera'
 import { pixelToLngLat } from '../geo/geolocate'
 import { parseSrt, sampleAt } from './srt'
 import { pythonExecutable, pythonScriptPath } from '../paths'
@@ -30,10 +31,10 @@ interface RawDetection {
   py: number
 }
 
-export async function checkBackend(): Promise<DetectionBackendInfo> {
-  const py = pythonExecutable()
+export async function checkBackend(pythonPath?: string): Promise<DetectionBackendInfo> {
+  const py = pythonExecutable(pythonPath)
   if (!py) {
-    return { available: false, kind: 'mock', detail: 'Python 3 not found on PATH. Using the built-in simulator.' }
+    return { available: false, kind: 'mock', detail: 'Python 3 not found. Set a Python path in Settings, or use the built-in simulator.' }
   }
   const ok = await new Promise<boolean>((resolve) => {
     const p = spawn(py, ['-c', 'import ultralytics, cv2'], { stdio: 'ignore' })
@@ -49,9 +50,9 @@ export async function analyzeVideo(
   flightId: string,
   videoPath: string,
   telemetryPath: string | undefined,
-  opts: { sampleFps?: number; modelPath?: string; minConfidence?: number } = {}
+  opts: { sampleFps?: number; modelPath?: string; minConfidence?: number; pythonPath?: string; cam?: CameraSpec } = {}
 ): Promise<{ detections: Detection[]; backend: string }> {
-  const py = pythonExecutable()
+  const py = pythonExecutable(opts.pythonPath)
   const script = pythonScriptPath()
   if (!py || !existsSync(script)) {
     throw new Error('Python/YOLO backend unavailable. Install python/requirements.txt or use Simulate.')
@@ -79,7 +80,8 @@ export async function analyzeVideo(
       const ll = pixelToLngLat(
         { lng: t.lng, lat: t.lat, aglAltitude: t.altitude || 40, headingDeg: t.headingDeg },
         r.px,
-        r.py
+        r.py,
+        opts.cam
       )
       lng = ll.lng
       lat = ll.lat

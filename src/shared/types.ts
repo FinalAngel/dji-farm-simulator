@@ -142,6 +142,24 @@ export interface DetectionBackendInfo {
   detail: string
 }
 
+export type Basemap = 'satellite' | 'streets'
+
+/** App-wide settings, configured on the Settings page (and on first run). */
+export interface AppSettings {
+  /** Selected aircraft id from the DRONES catalog (drives camera/airframe specs). */
+  droneId: string
+  /** Defaults applied to a field that has no saved mission parameters yet. */
+  defaultParams: MissionParams
+  /** Initial map basemap. */
+  defaultBasemap: Basemap
+  /** Optional path to a Python interpreter (venv) so the YOLO detector can be enabled from the UI. */
+  pythonPath?: string
+  /** Minimum detection confidence (0..1) passed to the YOLO detector. */
+  minConfidence: number
+  /** False until the first-run setup has been completed. */
+  initialized: boolean
+}
+
 /** Progress event emitted while a simulated/live mission runs. */
 export interface FlightProgress {
   flightId: string

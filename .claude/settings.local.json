@@ -18,7 +18,8 @@
       "Bash(pkill -f \"electron-vite\")",
       "Bash(kill %1)",
       "Bash(pkill -f \"electron-vite dev\")",
-      "Bash(pkill -f \"litox1.*electron\")"
+      "Bash(pkill -f \"litox1.*electron\")",
+      "Bash(pkill -f \"litox1.*[Ee]lectron\")"
     ]
   }
 }

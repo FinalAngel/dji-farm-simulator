@@ -1,4 +1,5 @@
 import type {
+  AppSettings,
   DetectionBackendInfo,
   Detection,
   ExportFormat,
@@ -39,6 +40,10 @@ export interface CockpitApi {
       telemetryPath?: string
     ): Promise<Flight>
     detections(flightId: string): Promise<Detection[]>
+  }
+  settings: {
+    get(): Promise<AppSettings>
+    set(patch: Partial<AppSettings>): Promise<AppSettings>
   }
   system: {
     backend(): Promise<DetectionBackendInfo>

@@ -25,21 +25,20 @@ export function pythonScriptPath(): string {
   return candidates.find((p) => existsSync(p)) ?? candidates[0]
 }
 
-let cachedPy: string | null | undefined
-/** First usable Python 3 interpreter, or null. Result is cached. */
-export function pythonExecutable(): string | null {
-  if (cachedPy !== undefined) return cachedPy
-  const override = process.env.LITOX1_PYTHON
-  const candidates = [override, 'python3', 'python'].filter(Boolean) as string[]
+/**
+ * First usable Python 3 interpreter, or null. Tries, in order: an explicit
+ * `override` (from Settings), the LITOX1_PYTHON env var, then python3/python on PATH.
+ * Not cached — the override can change at runtime when the user edits Settings.
+ */
+export function pythonExecutable(override?: string): string | null {
+  const candidates = [override, process.env.LITOX1_PYTHON, 'python3', 'python'].filter(Boolean) as string[]
   for (const c of candidates) {
     try {
       execSync(`${c} --version`, { stdio: 'ignore' })
-      cachedPy = c
       return c
     } catch {
       /* try next */
     }
   }
-  cachedPy = null
   return null
 }

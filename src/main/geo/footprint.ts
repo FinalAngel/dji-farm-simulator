@@ -1,4 +1,4 @@
-import { LITO_X1 } from '../../shared/camera'
+import { LITO_X1, type CameraSpec } from '../../shared/camera'
 
 export interface Footprint {
   /** Across-track ground width of one frame, metres. */
@@ -8,26 +8,22 @@ export interface Footprint {
 }
 
 /** Ground footprint of a nadir frame at a given altitude (m AGL). */
-export function footprintMeters(
-  altitude: number,
-  hfovDeg = LITO_X1.hfovDeg,
-  vfovDeg = LITO_X1.vfovDeg
-): Footprint {
-  const width = 2 * altitude * Math.tan((hfovDeg * Math.PI) / 360)
-  const height = 2 * altitude * Math.tan((vfovDeg * Math.PI) / 360)
+export function footprintMeters(altitude: number, cam: CameraSpec = LITO_X1): Footprint {
+  const width = 2 * altitude * Math.tan((cam.hfovDeg * Math.PI) / 360)
+  const height = 2 * altitude * Math.tan((cam.vfovDeg * Math.PI) / 360)
   return { width, height }
 }
 
 /** Distance between adjacent sweep lines so strips overlap by `sidelap` (0..1). */
-export function lineSpacing(altitude: number, sidelap: number): number {
-  const { width } = footprintMeters(altitude)
+export function lineSpacing(altitude: number, sidelap: number, cam: CameraSpec = LITO_X1): number {
+  const { width } = footprintMeters(altitude, cam)
   return Math.max(1, width * (1 - clamp(sidelap, 0, 0.95)))
 }
 
 /** Ground sample distance (metres per video pixel) at nadir. */
-export function gsd(altitude: number): number {
-  const { width } = footprintMeters(altitude)
-  return width / LITO_X1.videoWidth
+export function gsd(altitude: number, cam: CameraSpec = LITO_X1): number {
+  const { width } = footprintMeters(altitude, cam)
+  return width / cam.videoWidth
 }
 
 function clamp(v: number, lo: number, hi: number): number {

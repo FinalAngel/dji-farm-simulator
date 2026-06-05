@@ -1,12 +1,14 @@
 import { randomUUID } from 'node:crypto'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import type {
+  AppSettings,
   ExportFormat,
   Field,
   Flight,
   FlightProgress,
   MissionParams
 } from '../shared/types'
+import { getDrone } from '../shared/camera'
 import { areaHectares, centroid } from './geo/geo'
 import { planMission } from './geo/coverage'
 import { offlineController } from './drone/offline'
@@ -14,9 +16,10 @@ import { simulatedController } from './drone/simulated'
 import { BridgeController } from './drone/bridge'
 import { analyzeVideo, checkBackend } from './detection/service'
 import { computeStats } from './stats'
-import { detections, fields, flights } from './store'
+import { detections, fields, flights, settings } from './store'
 
 const now = () => new Date().toISOString()
+const activeDrone = () => getDrone(settings.get().droneId)
 
 function requireField(id: string): Field {
   const f = fields.get(id)
@@ -61,14 +64,14 @@ export function registerIpc(): void {
   // ---- Mission planning -----------------------------------------------------
   ipcMain.handle('mission:plan', (_e, fieldId: string, params: MissionParams) => {
     const field = requireField(fieldId)
-    return planMission(field.id, field.polygon, params, field.homePoint)
+    return planMission(field.id, field.polygon, params, field.homePoint, activeDrone())
   })
 
   ipcMain.handle(
     'mission:export',
     async (_e, fieldId: string, params: MissionParams, formats: ExportFormat[], chooseDir: boolean) => {
       const field = requireField(fieldId)
-      const plan = planMission(field.id, field.polygon, params, field.homePoint)
+      const plan = planMission(field.id, field.polygon, params, field.homePoint, activeDrone())
       let dir: string | undefined
       if (chooseDir) {
         const win = BrowserWindow.getFocusedWindow()
@@ -99,7 +102,7 @@ export function registerIpc(): void {
   // Simulated end-to-end flight (no hardware).
   ipcMain.handle('flights:simulate', async (event, fieldId: string, params: MissionParams) => {
     const field = requireField(fieldId)
-    const plan = planMission(field.id, field.polygon, params, field.homePoint)
+    const plan = planMission(field.id, field.polygon, params, field.homePoint, activeDrone())
     const flight: Flight = {
       id: randomUUID(),
       fieldId: field.id,
@@ -137,7 +140,7 @@ export function registerIpc(): void {
     'flights:analyzeVideo',
     async (_e, fieldId: string, params: MissionParams, videoPath: string, telemetryPath?: string) => {
       const field = requireField(fieldId)
-      const plan = planMission(field.id, field.polygon, params, field.homePoint)
+      const plan = planMission(field.id, field.polygon, params, field.homePoint, activeDrone())
       const flight: Flight = {
         id: randomUUID(),
         fieldId: field.id,
@@ -152,7 +155,12 @@ export function registerIpc(): void {
       }
       flights.insert(flight)
       try {
-        const { detections: dets, backend } = await analyzeVideo(flight.id, videoPath, telemetryPath)
+        const s = settings.get()
+        const { detections: dets, backend } = await analyzeVideo(flight.id, videoPath, telemetryPath, {
+          minConfidence: s.minConfidence,
+          pythonPath: s.pythonPath,
+          cam: activeDrone()
+        })
         detections.insertMany(dets)
         return flights.update(flight.id, {
           status: 'completed',
@@ -168,8 +176,12 @@ export function registerIpc(): void {
     }
   )
 
+  // ---- Settings -------------------------------------------------------------
+  ipcMain.handle('settings:get', () => settings.get())
+  ipcMain.handle('settings:set', (_e, patch: Partial<AppSettings>) => settings.set(patch))
+
   // ---- System / dialogs -----------------------------------------------------
-  ipcMain.handle('system:backend', () => checkBackend())
+  ipcMain.handle('system:backend', () => checkBackend(settings.get().pythonPath))
 
   ipcMain.handle('dialog:openVideo', async () => {
     const win = BrowserWindow.getFocusedWindow()
