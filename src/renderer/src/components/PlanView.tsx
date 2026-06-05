@@ -79,7 +79,7 @@ export default function PlanView(p: Props): JSX.Element {
 
       <div className="card">
         <h3>Export mission → DJI Fly</h3>
-        <div className="chips" style={{ marginBottom: 10 }}>
+        <div className="chips" style={{ marginBottom: 14 }}>
           {ALL_FORMATS.map((f) => (
             <label key={f.fmt} className="chip" style={{ cursor: 'pointer' }}>
               <input type="checkbox" style={{ width: 'auto', marginRight: 6 }} checked={formats[f.fmt]}
@@ -88,18 +88,17 @@ export default function PlanView(p: Props): JSX.Element {
             </label>
           ))}
         </div>
-        <div className="row">
-          <button disabled={p.busy || selectedFormats.length === 0} onClick={() => p.onExport(selectedFormats, false)}>Save to app folder</button>
-          <button disabled={p.busy || selectedFormats.length === 0} onClick={() => p.onExport(selectedFormats, true)}>Export to…</button>
-        </div>
+        <button className="primary" style={{ width: '100%' }} disabled={p.busy || selectedFormats.length === 0} onClick={() => p.onExport(selectedFormats, true)}>
+          Export to…
+        </button>
         {p.exports.length > 0 && (
-          <div className="export-list">
+          <div className="export-list" style={{ marginTop: 12 }}>
             {p.exports.map((e) => (
               <a key={e.path} onClick={() => p.onReveal(e.path)} title="Reveal in file manager">📄 {e.path}</a>
             ))}
           </div>
         )}
-        <div className="help">
+        <div className="help" style={{ marginTop: 12 }}>
           WPML import compatibility varies by firmware — if DJI Fly rejects the .kmz, use the Litchi CSV. Fly in VLOS; fully unattended flight is the EASA/BAZL specific category.
         </div>
       </div>
