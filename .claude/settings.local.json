@@ -31,7 +31,13 @@
       "Bash(git *)",
       "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --msg-filter 'sh /tmp/msg-filter.sh' 098f938^..HEAD)",
       "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --msg-filter 'sh /tmp/msg-filter.sh' -- HEAD)",
-      "Bash(gh run *)"
+      "Bash(gh run *)",
+      "Bash(npm -v)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(LITOX1_SMOKE_EXIT=1 timeout 60 npm start)",
+      "Bash(echo \"boot exit code: $?\")",
+      "Bash(echo \"npm run ci exit: $?\")"
     ]
   }
 }
