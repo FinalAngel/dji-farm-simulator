@@ -361,10 +361,9 @@ export default function App(): JSX.Element {
               ))}
             </div>
           )}
+          {toast && <div className="toast">✓ {toast}</div>}
         </div>
       </div>
-
-      {toast && <div className="toast">✓ {toast}</div>}
     </div>
   )
 }

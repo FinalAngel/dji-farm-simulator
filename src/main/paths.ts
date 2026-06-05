@@ -1,4 +1,4 @@
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { app } from 'electron'
@@ -57,7 +57,9 @@ export function pythonExecutable(override?: string): string | null {
   const candidates = [override, process.env.LITOX1_PYTHON, 'python3', 'python'].filter(Boolean) as string[]
   for (const c of candidates) {
     try {
-      execSync(`${c} --version`, { stdio: 'ignore' })
+      // execFileSync runs the binary directly (no shell), so paths with spaces
+      // — e.g. macOS "Application Support" — validate correctly.
+      execFileSync(c, ['--version'], { stdio: 'ignore' })
       return c
     } catch {
       /* try next */
