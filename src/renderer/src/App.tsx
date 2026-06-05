@@ -186,10 +186,16 @@ export default function App(): JSX.Element {
         <div className="nav">
           <button className={view === 'fields' ? 'active' : ''} onClick={() => setView('fields')}>Fields</button>
           {/* Wrapper span carries the tooltip so it still shows while the button is disabled (disabled buttons swallow hover). */}
-          <span className="tip" data-tip={selectedId ? undefined : 'Select a field in the Fields tab first'} style={{ display: 'inline-flex' }}>
-            <button className={view === 'plan' ? 'active' : ''} onClick={() => setView('plan')} disabled={!selectedId}>Plan &amp; Fly</button>
+          <span
+            className="tip"
+            data-tip={drawing ? 'Save or cancel the field first' : selectedId ? undefined : 'Select a field in the Fields tab first'}
+            style={{ display: 'inline-flex' }}
+          >
+            <button className={view === 'plan' ? 'active' : ''} onClick={() => setView('plan')} disabled={!selectedId || drawing}>Plan &amp; Fly</button>
           </span>
-          <button className={view === 'flights' ? 'active' : ''} onClick={() => { setSelectedFlightId(null); setView('flights') }}>Flights</button>
+          <span className="tip" data-tip={drawing ? 'Save or cancel the field first' : undefined} style={{ display: 'inline-flex' }}>
+            <button className={view === 'flights' ? 'active' : ''} onClick={() => { setSelectedFlightId(null); setView('flights') }} disabled={drawing}>Flights</button>
+          </span>
         </div>
         <div className="spacer" />
         {backend && <div className={`backend-pill ${backend.kind}`}>● {backend.kind === 'yolo' ? 'YOLO ready' : 'Simulator'}</div>}
@@ -201,7 +207,7 @@ export default function App(): JSX.Element {
 
           {view === 'fields' && (
             <FieldsView
-              fields={fields} selectedId={selectedId} drawing={drawing} draftLen={draft.length}
+              fields={fields} selectedId={selectedId} drawing={drawing} draft={draft}
               editField={editingId ? selectedField : null}
               onSelect={(id) => { if (!drawing) setSelectedId(id) }} onStartDraw={startDraw} onStartEdit={startEdit}
               onPlan={(id) => { setSelectedId(id); setView('plan') }}
@@ -232,11 +238,6 @@ export default function App(): JSX.Element {
             onSelectField={(id) => { if (!drawing && (view === 'fields' || view === 'plan')) setSelectedId(id) }}
             onMapClick={onMapClick} onMoveDraftPoint={moveDraftPoint} onDeleteDraftPoint={deleteDraftPoint}
           />
-          {drawing && (
-            <div className="map-hint">
-              Click to add points · drag a point to move · shift-click a point to delete · {draft.length} placed
-            </div>
-          )}
           <div className="basemap-toggle">
             <button className={`small ${basemap === 'satellite' ? 'primary' : ''}`} onClick={() => setBasemap('satellite')}>Satellite</button>
             <button className={`small ${basemap === 'streets' ? 'primary' : ''}`} onClick={() => setBasemap('streets')}>Map</button>

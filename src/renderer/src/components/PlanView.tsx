@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { DetectionBackendInfo, ExportFormat, ExportResult, Field, FlightProgress, MissionParams, MissionPlan } from '@shared/types'
 import { fmtDuration, fmtLen } from '../format'
+import FieldStats from './FieldStats'
 
 interface Props {
   field: Field | null
@@ -52,6 +53,11 @@ export default function PlanView(p: Props): JSX.Element {
         <Slider label="Side overlap" value={Math.round(p.params.sidelap * 100)} min={0} max={80} step={5} unit=" %" onChange={(v) => p.onParams({ sidelap: v / 100 })} />
         <Slider label="Sweep angle" value={p.params.angleDeg} min={0} max={179} step={1} unit="°" onChange={(v) => p.onParams({ angleDeg: v })} />
         <Slider label="Edge margin" value={p.params.marginM} min={0} max={20} step={1} unit=" m" onChange={(v) => p.onParams({ marginM: v })} />
+      </div>
+
+      <div className="card">
+        <h3>Field size</h3>
+        <FieldStats polygon={p.field.polygon} />
       </div>
 
       {p.plan && (

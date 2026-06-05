@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import type { Field } from '@shared/types'
+import type { Field, LngLat } from '@shared/types'
+import FieldStats from './FieldStats'
 
 interface Props {
   fields: Field[]
   selectedId: string | null
   drawing: boolean
-  draftLen: number
+  draft: LngLat[]
   /** Set when editing an existing field (drives prefilled form + "Update" labels). */
   editField: Field | null
   onSelect: (id: string) => void
@@ -38,13 +39,21 @@ export default function FieldsView(p: Props): JSX.Element {
             editing={!!p.editField}
             initialName={p.editField?.name ?? ''}
             initialNotes={p.editField?.notes ?? ''}
-            draftLen={p.draftLen}
+            draftLen={p.draft.length}
             onUndoPoint={p.onUndoPoint}
             onCancelDraw={p.onCancelDraw}
             onSave={p.onSave}
           />
         )}
       </div>
+
+      {/* Live size readout while drawing/editing. */}
+      {p.drawing && (
+        <div className="card">
+          <h3>Field size</h3>
+          <FieldStats polygon={p.draft} />
+        </div>
+      )}
 
       {/* List is hidden while drawing/editing so you can't accidentally switch fields and lose progress. */}
       {!p.drawing && (
