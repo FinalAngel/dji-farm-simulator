@@ -28,7 +28,9 @@
       "Bash(git add *)",
       "Bash(git commit -q -m 'Drop \"YOLO\" from naming; call it Ultralytics / \"the packages\" *)",
       "Bash(git push *)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --msg-filter 'sh /tmp/msg-filter.sh' 098f938^..HEAD)",
+      "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch -f --msg-filter 'sh /tmp/msg-filter.sh' -- HEAD)"
     ]
   }
 }
