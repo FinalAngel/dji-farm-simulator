@@ -40,6 +40,10 @@ export default function App(): JSX.Element {
   const settingsTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [installing, setInstalling] = useState(false)
   const [installLog, setInstallLog] = useState<string[]>([])
+  const [toast, setToast] = useState<string | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Bumped each time so SettingsView re-scrolls even when the same section is requested twice.
+  const [settingsScroll, setSettingsScroll] = useState<{ to: 'drone' | 'engine'; n: number } | null>(null)
 
   const [flights, setFlights] = useState<Flight[]>([])
   const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null)
@@ -85,15 +89,22 @@ export default function App(): JSX.Element {
     setParams(remembered ?? saved ?? settings?.defaultParams ?? DEFAULT_MISSION_PARAMS)
   }, [selectedId, fields, settings])
 
+  const showToast = (msg: string): void => {
+    setToast(msg)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), 1600)
+  }
+
   // ---- settings: update local state immediately, persist (debounced, patch-accumulating) ----
   const updateSettings = (patch: Partial<AppSettings>): void => {
     setSettings((prev) => (prev ? { ...prev, ...patch } : prev))
+    if (patch.defaultBasemap) setBasemap(patch.defaultBasemap) // reflect on the live map at once
     pendingSettings.current = { ...pendingSettings.current, ...patch }
     if (settingsTimer.current) clearTimeout(settingsTimer.current)
-    settingsTimer.current = setTimeout(() => {
+    settingsTimer.current = setTimeout(async () => {
       const p = pendingSettings.current
       pendingSettings.current = {}
-      api.settings.set(p).catch(() => {})
+      try { await api.settings.set(p); showToast('Settings saved') } catch { /* ignore */ }
     }, 300)
   }
 
@@ -103,6 +114,11 @@ export default function App(): JSX.Element {
   }
 
   const finishSetup = (): void => { updateSettings({ initialized: true }); setView('fields') }
+
+  const resetApp = (): void => {
+    if (!confirm('Reset the app? This permanently deletes all fields, flights, detections, settings and the installed detection engine, then starts fresh.')) return
+    api.system.reset() // main wipes everything and reloads the window
+  }
 
   const installBackend = async (): Promise<void> => {
     if (installing) return
@@ -277,10 +293,10 @@ export default function App(): JSX.Element {
         {backend && (
           <div
             className={`backend-pill ${backend.kind} tip tip-end`}
-            data-tip={backend.kind === 'yolo' ? 'Real YOLO detector active — click for Settings' : 'Mock detections — click to set up real YOLO detection'}
+            data-tip={backend.kind === 'yolo' ? 'Real YOLO detector active — click for Settings' : 'Go to settings to install real detection.'}
             style={{ cursor: 'pointer' }}
             onClick={() => setView('settings')}
-          >● {backend.kind === 'yolo' ? 'YOLO ready' : 'Simulator'}</div>
+          >● {backend.kind === 'yolo' ? 'Operational' : 'Simulator'}</div>
         )}
         <button className={`ghost gear ${view === 'settings' ? 'active' : ''}`} title="Settings" aria-label="Settings" onClick={() => setView('settings')}>⚙</button>
       </div>
@@ -317,7 +333,7 @@ export default function App(): JSX.Element {
             <SettingsView
               settings={settings} backend={backend} busy={busy} firstRun={!settings.initialized}
               installing={installing} installLog={installLog}
-              onChange={updateSettings} onRecheckBackend={recheckBackend} onInstall={installBackend} onFinish={finishSetup}
+              onChange={updateSettings} onRecheckBackend={recheckBackend} onInstall={installBackend} onFinish={finishSetup} onReset={resetApp}
             />
           )}
         </div>
@@ -342,6 +358,8 @@ export default function App(): JSX.Element {
           )}
         </div>
       </div>
+
+      {toast && <div className="toast">✓ {toast}</div>}
     </div>
   )
 }

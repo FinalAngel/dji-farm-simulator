@@ -223,7 +223,20 @@ label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px
 .banner { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; line-height: 1.45; }
 .banner.warn { background: #2c2410; border: 1px solid #5a4a1f; color: var(--warn); }
 .banner.info { background: #102530; border: 1px solid var(--accent-dim); color: #bfe6ff; }
+.banner.ok { background: #0f2a1d; border: 1px solid #2c5640; color: var(--ok); }
 .banner.err { background: #2c1414; border: 1px solid #5a2424; color: var(--danger); }
+
+.toast {
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+  background: var(--panel-2); border: 1px solid #2c5640; color: var(--ok);
+  padding: 9px 16px; border-radius: 99px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55); z-index: 200;
+  animation: toast-in 0.18s ease;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
 
 .progress { height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; margin: 8px 0; }
 .progress .bar { height: 100%; background: var(--accent); transition: width 0.3s; }

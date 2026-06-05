@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { rmSync } from 'node:fs'
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import type {
   AppSettings,
@@ -17,7 +18,8 @@ import { BridgeController } from './drone/bridge'
 import { analyzeVideo, checkBackend } from './detection/service'
 import { installBackend } from './detection/install'
 import { computeStats } from './stats'
-import { detections, fields, flights, settings } from './store'
+import { detections, fields, flights, resetAll, settings } from './store'
+import { exportsDir, venvDir } from './paths'
 
 const now = () => new Date().toISOString()
 const activeDrone = () => getDrone(settings.get().droneId)
@@ -180,6 +182,17 @@ export function registerIpc(): void {
   // ---- Settings -------------------------------------------------------------
   ipcMain.handle('settings:get', () => settings.get())
   ipcMain.handle('settings:set', (_e, patch: Partial<AppSettings>) => settings.set(patch))
+
+  // Factory reset: delete all local data + installed files, then reload fresh.
+  ipcMain.handle('system:reset', () => {
+    resetAll()
+    for (const dir of [venvDir(), exportsDir()]) {
+      try { rmSync(dir, { recursive: true, force: true }) } catch { /* ignore */ }
+    }
+    const win = BrowserWindow.getFocusedWindow()
+    setTimeout(() => win?.webContents.reload(), 150) // let this IPC response flush first
+    return true
+  })
 
   // ---- System / dialogs -----------------------------------------------------
   ipcMain.handle('system:backend', () => checkBackend(settings.get().pythonPath))

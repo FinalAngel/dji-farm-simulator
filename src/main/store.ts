@@ -2,7 +2,7 @@
 // machines) and plenty fast for thousands of flights/detections. Each collection
 // is one file under userData/data, cached in memory and written on mutation.
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import type { AppSettings, Detection, Field, Flight } from '../shared/types'
 import { DEFAULT_MISSION_PARAMS } from '../shared/types'
@@ -88,6 +88,13 @@ class Collection<T extends { id: string }> {
     this.items.push(...many)
     this.persist()
   }
+
+  /** Wipe the collection and its file. */
+  clear(): void {
+    this.items = []
+    this.loaded = true
+    try { rmSync(this.path(), { force: true }) } catch { /* ignore */ }
+  }
 }
 
 export const fields = new Collection<Field>('fields.json')
@@ -128,6 +135,18 @@ class SettingsStore {
     writeFileSync(this.path(), JSON.stringify(next, null, 2))
     return next
   }
+  reset(): void {
+    this.data = null // next get() returns defaults
+    try { rmSync(this.path(), { force: true }) } catch { /* ignore */ }
+  }
 }
 
 export const settings = new SettingsStore()
+
+/** Wipe all persisted app data (fields, flights, detections, settings). */
+export function resetAll(): void {
+  fields.clear()
+  flights.clear()
+  detections.clear()
+  settings.reset()
+}

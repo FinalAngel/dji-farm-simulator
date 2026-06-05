@@ -52,6 +52,7 @@ export interface CockpitApi {
     openSrt(): Promise<string | null>
     testBridge(baseUrl: string, model?: string): Promise<{ ok: boolean; reason?: string }>
     installBackend(): Promise<{ ok: boolean; pythonPath?: string; error?: string }>
+    reset(): Promise<boolean>
   }
   onFlightProgress(cb: (p: FlightProgress) => void): () => void
   onBackendInstallProgress(cb: (line: string) => void): () => void

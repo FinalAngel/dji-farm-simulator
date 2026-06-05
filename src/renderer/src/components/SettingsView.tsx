@@ -13,6 +13,7 @@ interface Props {
   onRecheckBackend: () => void
   onInstall: () => void
   onFinish: () => void
+  onReset: () => void
 }
 
 function Slider(props: { label: string; value: number; min: number; max: number; step: number; unit: string; onChange: (v: number) => void }): JSX.Element {
@@ -70,7 +71,7 @@ export default function SettingsView(p: Props): JSX.Element {
 
       <div className="card">
         <h3>Detection engine</h3>
-        <div className={`banner ${yolo ? 'info' : 'warn'}`}>
+        <div className={`banner ${yolo ? 'ok' : 'warn'}`}>
           <strong>{yolo ? '● Real YOLO detector active' : '● Simulator (mock detections)'}</strong>
           <div style={{ marginTop: 4 }}>{p.backend?.detail ?? 'Checking…'}</div>
         </div>
@@ -86,9 +87,11 @@ export default function SettingsView(p: Props): JSX.Element {
             <button className="primary" style={{ width: '100%' }} disabled={p.installing} onClick={p.onInstall}>
               {p.installing ? '⏳ Installing… keep the app open' : '⬇ Install detection engine'}
             </button>
+            <div style={{ height: 8 }} />
+            <button className="small" style={{ width: '100%' }} disabled={p.busy || p.installing} onClick={p.onRecheckBackend}>↻ Re-check engine</button>
             <div className="help">
-              Creates a Python environment and installs Ultralytics YOLO + OpenCV (~1 GB download — can take several minutes).
-              Requires Python 3 already on your system.
+              Sets everything up inside the app — creates a Python environment and downloads Ultralytics YOLO + OpenCV
+              (~1 GB, a few minutes). Requires Python 3 on your system.
             </div>
           </>
         )}
@@ -96,20 +99,6 @@ export default function SettingsView(p: Props): JSX.Element {
         {p.installLog.length > 0 && (
           <pre className="codeblock log" ref={logRef}>{p.installLog.join('\n')}</pre>
         )}
-
-        <hr />
-        <details>
-          <summary className="muted" style={{ cursor: 'pointer', fontSize: 12 }}>Advanced — point at an existing Python</summary>
-          <div style={{ height: 10 }} />
-          <label>Python interpreter path</label>
-          <input
-            value={s.pythonPath ?? ''}
-            placeholder="/path/to/.venv/bin/python — leave blank to auto-detect"
-            onChange={(e) => p.onChange({ pythonPath: e.target.value || undefined })}
-          />
-          <div style={{ height: 8 }} />
-          <button className="small" disabled={p.busy || p.installing} onClick={p.onRecheckBackend}>↻ Re-check engine</button>
-        </details>
 
         <div style={{ height: 14 }} />
         <Slider label="Detection confidence" value={Math.round(s.minConfidence * 100)} min={10} max={90} step={5} unit=" %"
@@ -138,6 +127,18 @@ export default function SettingsView(p: Props): JSX.Element {
           ))}
         </div>
       </div>
+
+      {!p.firstRun && (
+        <div className="card">
+          <h3>Reset</h3>
+          <div className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
+            Permanently delete all fields, flights, detections, settings and the installed detection engine, then start fresh.
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button className="danger small" onClick={p.onReset}>Reset app &amp; delete all data</button>
+          </div>
+        </div>
+      )}
 
       {p.firstRun && (
         <button className="primary" style={{ width: '100%' }} onClick={p.onFinish}>

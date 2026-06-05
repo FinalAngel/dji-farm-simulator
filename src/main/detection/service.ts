@@ -43,7 +43,7 @@ export async function checkBackend(pythonPath?: string): Promise<DetectionBacken
   })
   return ok
     ? { available: true, kind: 'yolo', detail: `YOLO sidecar ready (${py}).` }
-    : { available: false, kind: 'mock', detail: 'Python found but ultralytics/opencv not installed (pip install -r python/requirements.txt).' }
+    : { available: false, kind: 'mock', detail: 'Python found, but the YOLO packages aren’t installed yet. Use “Install detection engine” below.' }
 }
 
 export async function analyzeVideo(

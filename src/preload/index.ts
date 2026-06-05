@@ -61,7 +61,8 @@ const api = {
     testBridge: (baseUrl: string, model?: string): Promise<{ ok: boolean; reason?: string }> =>
       ipcRenderer.invoke('bridge:test', baseUrl, model),
     installBackend: (): Promise<{ ok: boolean; pythonPath?: string; error?: string }> =>
-      ipcRenderer.invoke('backend:install')
+      ipcRenderer.invoke('backend:install'),
+    reset: (): Promise<boolean> => ipcRenderer.invoke('system:reset')
   },
   onFlightProgress: (cb: (p: FlightProgress) => void): (() => void) => {
     const listener = (_e: unknown, p: FlightProgress) => cb(p)
