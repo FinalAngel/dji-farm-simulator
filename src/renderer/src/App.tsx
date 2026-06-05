@@ -185,7 +185,10 @@ export default function App(): JSX.Element {
         <div className="brand">Lito&nbsp;<span>X1</span>&nbsp;Cockpit</div>
         <div className="nav">
           <button className={view === 'fields' ? 'active' : ''} onClick={() => setView('fields')}>Fields</button>
-          <button className={view === 'plan' ? 'active' : ''} onClick={() => setView('plan')} disabled={!selectedId}>Plan &amp; Fly</button>
+          {/* Wrapper span carries the tooltip so it still shows while the button is disabled (disabled buttons swallow hover). */}
+          <span className="tip" data-tip={selectedId ? undefined : 'Select a field in the Fields tab first'} style={{ display: 'inline-flex' }}>
+            <button className={view === 'plan' ? 'active' : ''} onClick={() => setView('plan')} disabled={!selectedId}>Plan &amp; Fly</button>
+          </span>
           <button className={view === 'flights' ? 'active' : ''} onClick={() => { setSelectedFlightId(null); setView('flights') }}>Flights</button>
         </div>
         <div className="spacer" />
@@ -201,6 +204,8 @@ export default function App(): JSX.Element {
               fields={fields} selectedId={selectedId} drawing={drawing} draftLen={draft.length}
               editField={editingId ? selectedField : null}
               onSelect={(id) => { if (!drawing) setSelectedId(id) }} onStartDraw={startDraw} onStartEdit={startEdit}
+              onPlan={(id) => { setSelectedId(id); setView('plan') }}
+              onClearSelection={() => setSelectedId(null)}
               onUndoPoint={undoPoint} onCancelDraw={cancelDraw} onSave={saveField} onDelete={deleteField} onLoadDemo={loadDemo}
             />
           )}

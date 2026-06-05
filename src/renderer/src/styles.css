@@ -75,6 +75,47 @@ label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px
 .nav { display: flex; gap: 4px; }
 .nav button { background: transparent; border-color: transparent; }
 .nav button.active { background: var(--panel-2); border-color: var(--line); }
+
+/* Custom tooltip — only renders when a [data-tip] is present (so it's skippable per-element). */
+.tip { position: relative; }
+.tip[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  white-space: nowrap;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--accent-dim);
+  padding: 7px 11px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 60;
+}
+.tip[data-tip]::before {
+  content: '';
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  border: 6px solid transparent;
+  border-bottom-color: var(--accent-dim);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+  z-index: 60;
+}
+.tip[data-tip]:hover::after,
+.tip[data-tip]:hover::before {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
 .spacer { flex: 1; }
 .backend-pill {
   font-size: 12px; color: var(--muted);

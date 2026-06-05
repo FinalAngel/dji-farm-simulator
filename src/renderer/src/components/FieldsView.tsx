@@ -11,6 +11,8 @@ interface Props {
   onSelect: (id: string) => void
   onStartDraw: () => void
   onStartEdit: (id: string) => void
+  onPlan: (id: string) => void
+  onClearSelection: () => void
   onUndoPoint: () => void
   onCancelDraw: () => void
   onSave: (name: string, notes: string) => void
@@ -56,17 +58,37 @@ export default function FieldsView(p: Props): JSX.Element {
             </div>
           )}
           {p.fields.map((f) => (
-            <div
-              key={f.id}
-              className={`field-item ${f.id === p.selectedId ? 'active' : ''}`}
-              onClick={() => p.onSelect(f.id)}
-            >
-              <div className="meta">
-                <div className="name">{f.name}</div>
-                <div className="sub">{f.areaHa.toFixed(2)} ha · {f.polygon.length} pts</div>
+            <div key={f.id}>
+              <div
+                className={`field-item ${f.id === p.selectedId ? 'active' : ''}`}
+                onClick={() => p.onSelect(f.id)}
+              >
+                <div className="meta">
+                  <div className="name">{f.name}</div>
+                  <div className="sub">{f.areaHa.toFixed(2)} ha · {f.polygon.length} pts</div>
+                </div>
+                <button className="ghost small" title="Edit field" onClick={(e) => { e.stopPropagation(); p.onStartEdit(f.id) }}>✎</button>
+                <button className="ghost small danger" title="Delete field" onClick={(e) => { e.stopPropagation(); p.onDelete(f.id) }}>✕</button>
               </div>
-              <button className="ghost small" title="Edit field" onClick={(e) => { e.stopPropagation(); p.onStartEdit(f.id) }}>✎</button>
-              <button className="ghost small danger" title="Delete field" onClick={(e) => { e.stopPropagation(); p.onDelete(f.id) }}>✕</button>
+              {/* Contextual actions so you don't have to hop up to the nav after selecting. */}
+              {f.id === p.selectedId && (
+                <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                  <button
+                    className="primary small"
+                    style={{ flex: 1 }}
+                    onClick={(e) => { e.stopPropagation(); p.onPlan(f.id) }}
+                  >
+                    ▶ Plan &amp; Fly this field →
+                  </button>
+                  <button
+                    className="small"
+                    title="Deselect this field"
+                    onClick={(e) => { e.stopPropagation(); p.onClearSelection() }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
