@@ -220,6 +220,30 @@ label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px
 
 .basemap-toggle { position: absolute; top: 16px; right: 16px; display: flex; gap: 4px; }
 
+/* Place / address search overlay (top-left of the map). */
+.map-search { position: absolute; top: 16px; left: 16px; width: 320px; max-width: calc(100% - 32px); z-index: 10; }
+.map-search-input {
+  display: flex; align-items: center; gap: 8px; height: 38px;
+  background: rgba(15, 20, 25, 0.92); border: 1px solid var(--line); border-radius: 8px;
+  padding: 0 10px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+.map-search-input .mag { display: flex; align-items: center; justify-content: center; width: 16px; flex-shrink: 0; color: var(--muted); }
+.map-search-input .mag.busy { color: var(--accent); }
+.map-search-input input { flex: 1; min-width: 0; width: auto; background: transparent; border: none; padding: 0; height: 100%; }
+.map-search-input input:focus { outline: none; border-color: transparent; }
+.map-search-input .clear { background: transparent; border: none; color: var(--muted); padding: 4px 6px; }
+.map-search-input .clear:hover:not(:disabled) { background: transparent; color: var(--text); }
+.map-search-results {
+  margin-top: 6px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px;
+  overflow: hidden; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+}
+.map-search-results button {
+  display: block; width: 100%; text-align: left; background: transparent; border: none;
+  border-radius: 0; padding: 9px 12px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.map-search-results button:hover:not(:disabled) { background: var(--bg); }
+.map-search-results .attr { font-size: 10px; color: var(--muted); padding: 6px 12px; border-top: 1px solid var(--line); }
+
 .banner { padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px; line-height: 1.45; }
 .banner.warn { background: #2c2410; border: 1px solid #5a4a1f; color: var(--warn); }
 .banner.info { background: #102530; border: 1px solid var(--accent-dim); color: #bfe6ff; }

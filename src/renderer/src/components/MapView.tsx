@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import maplibregl, { Map as MlMap, GeoJSONSource } from 'maplibre-gl'
 import type { Detection, Field, LngLat, Waypoint } from '@shared/types'
+import MapSearch, { type GeoResult } from './MapSearch'
 
 export const CLASS_COLORS: Record<string, string> = {
   cow: '#f4a261',
@@ -218,8 +219,25 @@ export default function MapView(props: Props): JSX.Element {
     if (f) fitToPolygon(map, f.polygon)
   }, [props.selectedId, props.fields])
 
+  // Fly/zoom the map to a geocoded search result.
+  const goto = (r: GeoResult): void => {
+    const map = mapRef.current
+    if (!map) return
+    if (r.extent) {
+      const [minLon, maxLat, maxLon, minLat] = r.extent
+      map.fitBounds([[minLon, minLat], [maxLon, maxLat]], { padding: 60, maxZoom: 16, duration: 1000 })
+    } else {
+      map.flyTo({ center: [r.lng, r.lat], zoom: 15, duration: 1000 })
+    }
+  }
+
   // App.tsx already wraps this in a positioned `.map-wrap`; fill it completely.
-  return <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+  return (
+    <>
+      <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      <MapSearch onGoto={goto} />
+    </>
+  )
 }
 
 // ---- helpers ----
