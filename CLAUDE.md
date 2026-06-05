@@ -8,7 +8,7 @@ An **Electron desktop app** to plan coverage flights over farm fields with a **D
 count cows, and flag deer/fawns before mowing. It is a **plan + export + analyze cockpit**,
 *not* a live flight controller (see constraint #1).
 
-Built from scratch in June 2026. Owner is Swiss (devguard.ch); the deer use-case is the Swiss
+Built from scratch in June 2026. Owner is Angelo Dini; the deer use-case is the Swiss
 *Rehkitzrettung* (fawn rescue) context.
 
 ## Three hard constraints that shaped every design decision

@@ -89,6 +89,11 @@ export default function App(): JSX.Element {
     setParams(remembered ?? saved ?? settings?.defaultParams ?? DEFAULT_MISSION_PARAMS)
   }, [selectedId, fields, settings])
 
+  const goToSettings = (to: 'drone' | 'engine'): void => {
+    setSettingsScroll((prev) => ({ to, n: (prev?.n ?? 0) + 1 }))
+    setView('settings')
+  }
+
   const showToast = (msg: string): void => {
     setToast(msg)
     if (toastTimer.current) clearTimeout(toastTimer.current)
@@ -287,7 +292,7 @@ export default function App(): JSX.Element {
           </span>
         </div>
         <div className="spacer" />
-        <div className="aircraft-pill tip tip-end" data-tip="Active drone — click to change" style={{ cursor: 'pointer' }} onClick={() => setView('settings')}>
+        <div className="aircraft-pill tip tip-end" data-tip="Active drone — click to change" style={{ cursor: 'pointer' }} onClick={() => goToSettings('drone')}>
           <span className="ac-dot" />{settings ? getDrone(settings.droneId).name : 'Lito X1'}
         </div>
         {backend && (
@@ -295,7 +300,7 @@ export default function App(): JSX.Element {
             className={`backend-pill ${backend.kind} tip tip-end`}
             data-tip={backend.kind === 'yolo' ? 'Real YOLO detector active — click for Settings' : 'Go to settings to install real detection.'}
             style={{ cursor: 'pointer' }}
-            onClick={() => setView('settings')}
+            onClick={() => goToSettings('engine')}
           >● {backend.kind === 'yolo' ? 'Operational' : 'Simulator'}</div>
         )}
         <button className={`ghost gear ${view === 'settings' ? 'active' : ''}`} title="Settings" aria-label="Settings" onClick={() => setView('settings')}>⚙</button>
@@ -332,7 +337,7 @@ export default function App(): JSX.Element {
           {view === 'settings' && settings && (
             <SettingsView
               settings={settings} backend={backend} busy={busy} firstRun={!settings.initialized}
-              installing={installing} installLog={installLog}
+              installing={installing} installLog={installLog} scrollTo={settingsScroll}
               onChange={updateSettings} onRecheckBackend={recheckBackend} onInstall={installBackend} onFinish={finishSetup} onReset={resetApp}
             />
           )}

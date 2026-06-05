@@ -19,7 +19,10 @@
       "Bash(kill %1)",
       "Bash(pkill -f \"electron-vite dev\")",
       "Bash(pkill -f \"litox1.*electron\")",
-      "Bash(pkill -f \"litox1.*[Ee]lectron\")"
+      "Bash(pkill -f \"litox1.*[Ee]lectron\")",
+      "Bash(git -C /Users/angelo.dini/Sites/litox1 remote -v)",
+      "Bash(npm test *)",
+      "Bash(pkill -f \"dji-farm.*[Ee]lectron\")"
     ]
   }
 }

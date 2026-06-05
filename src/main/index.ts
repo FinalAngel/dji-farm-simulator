@@ -3,6 +3,9 @@ import { pathToFileURL } from 'node:url'
 import { app, BrowserWindow, net, protocol, shell } from 'electron'
 import { registerIpc } from './ipc'
 
+// Headless CI launch (no display sandbox available on the runner).
+if (process.env.LITOX1_SMOKE_EXIT) app.commandLine.appendSwitch('no-sandbox')
+
 // Allow the renderer to play local video files via media://stream?path=...
 // (loading file:// directly is blocked under the app's CSP / web security).
 protocol.registerSchemesAsPrivileged([
@@ -42,6 +45,12 @@ function createWindow(): void {
     win.webContents.openDevTools({ mode: 'detach' })
   } else {
     win.loadFile(join(__dirname, '../renderer/index.html'))
+  }
+
+  // CI smoke launch: quit shortly after the UI renders so a headless boot can be
+  // asserted (exit 0) without the app hanging the runner.
+  if (process.env.LITOX1_SMOKE_EXIT) {
+    win.webContents.once('did-finish-load', () => setTimeout(() => app.exit(0), 2000))
   }
 }
 

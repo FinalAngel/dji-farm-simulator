@@ -15,24 +15,25 @@ export function exportsDir(): string {
   return d
 }
 
-/** Repo-relative path to the Python detector (works in dev and packaged). */
-export function pythonScriptPath(): string {
+/** Locate a file in the bundled `python/` dir, in dev and in a packaged app. */
+function pythonAsset(file: string): string {
   const candidates = [
-    join(app.getAppPath(), 'python', 'detect.py'),
-    join(process.cwd(), 'python', 'detect.py'),
-    join(__dirname, '..', '..', 'python', 'detect.py')
+    join(process.resourcesPath ?? '', 'python', file), // packaged (electron-builder extraResources)
+    join(app.getAppPath(), 'python', file),
+    join(process.cwd(), 'python', file),
+    join(__dirname, '..', '..', 'python', file)
   ]
-  return candidates.find((p) => existsSync(p)) ?? candidates[0]
+  return candidates.find((p) => existsSync(p)) ?? candidates[1]
+}
+
+/** Path to the Python detector (works in dev and packaged). */
+export function pythonScriptPath(): string {
+  return pythonAsset('detect.py')
 }
 
 /** Path to the detector's requirements.txt (works in dev and packaged). */
 export function pythonRequirementsPath(): string {
-  const candidates = [
-    join(app.getAppPath(), 'python', 'requirements.txt'),
-    join(process.cwd(), 'python', 'requirements.txt'),
-    join(__dirname, '..', '..', 'python', 'requirements.txt')
-  ]
-  return candidates.find((p) => existsSync(p)) ?? candidates[0]
+  return pythonAsset('requirements.txt')
 }
 
 /** Where the in-app installer creates its virtual environment (always writable). */

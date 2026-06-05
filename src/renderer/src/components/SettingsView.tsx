@@ -9,6 +9,7 @@ interface Props {
   firstRun: boolean
   installing: boolean
   installLog: string[]
+  scrollTo: { to: 'drone' | 'engine'; n: number } | null
   onChange: (patch: Partial<AppSettings>) => void
   onRecheckBackend: () => void
   onInstall: () => void
@@ -35,6 +36,15 @@ export default function SettingsView(p: Props): JSX.Element {
   const logRef = useRef<HTMLPreElement>(null)
   useEffect(() => { logRef.current?.scrollTo(0, logRef.current.scrollHeight) }, [p.installLog])
 
+  // Jump to a section when arriving from a top-bar badge.
+  const droneRef = useRef<HTMLDivElement>(null)
+  const engineRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!p.scrollTo) return
+    const el = p.scrollTo.to === 'drone' ? droneRef.current : engineRef.current
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [p.scrollTo?.n])
+
   return (
     <div>
       <div className="plan-head">
@@ -46,7 +56,7 @@ export default function SettingsView(p: Props): JSX.Element {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card" ref={droneRef}>
         <h3>Your drone</h3>
         <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
           Drives coverage spacing, flight-time estimates and pixel→ground geolocation.
@@ -69,7 +79,7 @@ export default function SettingsView(p: Props): JSX.Element {
         </div>
       </div>
 
-      <div className="card">
+      <div className="card" ref={engineRef}>
         <h3>Detection engine</h3>
         <div className={`banner ${yolo ? 'ok' : 'warn'}`}>
           <strong>{yolo ? '● Real YOLO detector active' : '● Simulator (mock detections)'}</strong>

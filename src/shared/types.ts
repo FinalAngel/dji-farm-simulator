@@ -137,8 +137,8 @@ export interface ExportResult {
 
 export interface DetectionBackendInfo {
   available: boolean
-  /** 'yolo' when the Python sidecar is usable, otherwise 'mock'. */
-  kind: 'yolo' | 'mock'
+  /** 'real' when the detector packages are installed, otherwise 'mock'. */
+  kind: 'real' | 'mock'
   detail: string
 }
 
@@ -152,9 +152,9 @@ export interface AppSettings {
   defaultParams: MissionParams
   /** Initial map basemap. */
   defaultBasemap: Basemap
-  /** Optional path to a Python interpreter (venv) so the YOLO detector can be enabled from the UI. */
+  /** Optional path to a Python interpreter (venv) so the detector can be enabled from the UI. */
   pythonPath?: string
-  /** Minimum detection confidence (0..1) passed to the YOLO detector. */
+  /** Minimum detection confidence (0..1) passed to the detector. */
   minConfidence: number
   /** False until the first-run setup has been completed. */
   initialized: boolean
