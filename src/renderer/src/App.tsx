@@ -208,22 +208,19 @@ export default function App(): JSX.Element {
   return (
     <div className="app">
       <div className="topbar">
-        <div className="brand">Lito&nbsp;<span>X1</span>&nbsp;Cockpit</div>
-        <div className="nav">
+        <div className="brand">DJI&nbsp;<span>Farm</span>&nbsp;Simulator</div>
+        <div className="segmented">
           <button className={view === 'fields' ? 'active' : ''} onClick={() => setView('fields')}>Fields</button>
           {/* Wrapper span carries the tooltip so it still shows while the button is disabled (disabled buttons swallow hover). */}
-          <span
-            className="tip"
-            data-tip={drawing ? 'Save or cancel the field first' : selectedId ? undefined : 'Select a field in the Fields tab first'}
-            style={{ display: 'inline-flex' }}
-          >
+          <span className="tip" data-tip={drawing ? 'Save or cancel the field first' : selectedId ? undefined : 'Select a field in the Fields tab first'}>
             <button className={view === 'plan' ? 'active' : ''} onClick={() => setView('plan')} disabled={!selectedId || drawing}>Plan &amp; Fly</button>
           </span>
-          <span className="tip" data-tip={drawing ? 'Save or cancel the field first' : undefined} style={{ display: 'inline-flex' }}>
+          <span className="tip" data-tip={drawing ? 'Save or cancel the field first' : undefined}>
             <button className={view === 'flights' ? 'active' : ''} onClick={() => { setSelectedFlightId(null); setView('flights') }} disabled={drawing}>Flights</button>
           </span>
         </div>
         <div className="spacer" />
+        <div className="aircraft-pill" title="Active aircraft profile"><span className="ac-dot" />Lito X1</div>
         {backend && <div className={`backend-pill ${backend.kind}`}>● {backend.kind === 'yolo' ? 'YOLO ready' : 'Simulator'}</div>}
       </div>
 

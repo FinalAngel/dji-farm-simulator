@@ -16,7 +16,7 @@ function createWindow(): void {
     minWidth: 1080,
     minHeight: 680,
     backgroundColor: '#0f1419',
-    title: 'Lito X1 Cockpit',
+    title: 'DJI Farm Simulator',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

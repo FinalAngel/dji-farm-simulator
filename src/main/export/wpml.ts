@@ -43,7 +43,7 @@ function templateKml(field: Field, plan: MissionPlan): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <kml ${NS}>
   <Document>
-    <wpml:author>LitoX1 Cockpit</wpml:author>
+    <wpml:author>DJI Farm Simulator</wpml:author>
     <wpml:createTime>0</wpml:createTime>
     <wpml:updateTime>0</wpml:updateTime>
 ${missionConfig(plan)}
