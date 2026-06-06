@@ -19,6 +19,7 @@ import { analyzeVideo, checkBackend } from './detection/service'
 import { installBackend } from './detection/install'
 import { computeStats } from './stats'
 import { detections, fields, flights, resetAll, settings } from './store'
+import { mt } from './i18n'
 import { exportsDir, venvDir } from './paths'
 
 const now = () => new Date().toISOString()
@@ -26,7 +27,7 @@ const activeDrone = () => getDrone(settings.get().droneId)
 
 function requireField(id: string): Field {
   const f = fields.get(id)
-  if (!f) throw new Error(`Field ${id} not found`)
+  if (!f) throw new Error(mt('errors.fieldNotFound', { id }))
   return f
 }
 
@@ -39,11 +40,11 @@ export function registerIpc(): void {
   ipcMain.handle('fields:get', (_e, id: string) => fields.get(id))
 
   ipcMain.handle('fields:create', (_e, input: Pick<Field, 'name' | 'polygon' | 'notes' | 'homePoint'>) => {
-    if (!input.polygon || input.polygon.length < 3) throw new Error('A field needs at least 3 points.')
+    if (!input.polygon || input.polygon.length < 3) throw new Error(mt('errors.fieldMin3'))
     const ts = now()
     return fields.insert({
       id: randomUUID(),
-      name: input.name?.trim() || 'Untitled field',
+      name: input.name?.trim() || mt('fields.untitled'),
       notes: input.notes,
       polygon: input.polygon,
       homePoint: input.homePoint ?? centroid(input.polygon),

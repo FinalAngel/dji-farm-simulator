@@ -2,6 +2,8 @@ import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { app, BrowserWindow, net, protocol, shell } from 'electron'
 import { registerIpc } from './ipc'
+import { settings } from './store'
+import { resolveLang } from '../shared/i18n'
 
 // Headless CI launch (no display sandbox available on the runner).
 if (process.env.LITOX1_SMOKE_EXIT) app.commandLine.appendSwitch('no-sandbox')
@@ -60,6 +62,10 @@ app.whenReady().then(() => {
     const filePath = url.searchParams.get('path') ?? ''
     return net.fetch(pathToFileURL(filePath).toString())
   })
+
+  // First launch ever: seed the UI language from the OS locale (de/fr/it/en),
+  // then leave it under the user's control via Settings.
+  if (!settings.exists()) settings.set({ language: resolveLang(app.getLocale()) })
 
   registerIpc()
   createWindow()

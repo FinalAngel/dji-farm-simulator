@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useI18n } from '../i18n'
 
 export interface GeoResult {
   label: string
@@ -9,15 +10,16 @@ export interface GeoResult {
 }
 
 // Build a readable one-line label from a Photon feature's properties.
-function labelOf(f: { properties?: Record<string, string> }): string {
+function labelOf(f: { properties?: Record<string, string> }, unnamed: string): string {
   const p = f.properties ?? {}
-  const main = p.name || [p.street, p.housenumber].filter(Boolean).join(' ') || p.city || 'Unnamed place'
+  const main = p.name || [p.street, p.housenumber].filter(Boolean).join(' ') || p.city || unnamed
   const ctx = [p.city && p.city !== main ? p.city : null, p.state, p.country].filter(Boolean).join(', ')
   return ctx ? `${main} · ${ctx}` : main
 }
 
 /** Place/address search box. Geocodes via Photon (OpenStreetMap) and reports a pick upward. */
 export default function MapSearch({ onGoto }: { onGoto: (r: GeoResult) => void }): JSX.Element {
+  const { t } = useI18n()
   const [q, setQ] = useState('')
   const [results, setResults] = useState<GeoResult[]>([])
   const [open, setOpen] = useState(false)
@@ -50,7 +52,7 @@ export default function MapSearch({ onGoto }: { onGoto: (r: GeoResult) => void }
         const rs: GeoResult[] = (data.features ?? [])
           .filter((f: { geometry?: { type?: string } }) => f.geometry?.type === 'Point')
           .map((f: { geometry: { coordinates: number[] }; properties?: Record<string, string> }) => ({
-            label: labelOf(f),
+            label: labelOf(f, t('mapSearch.unnamed')),
             lng: f.geometry.coordinates[0],
             lat: f.geometry.coordinates[1],
             extent: (f.properties as unknown as { extent?: [number, number, number, number] })?.extent
@@ -84,7 +86,7 @@ export default function MapSearch({ onGoto }: { onGoto: (r: GeoResult) => void }
         </span>
         <input
           value={q}
-          placeholder="Search a place or address…"
+          placeholder={t('mapSearch.placeholder')}
           onChange={(e) => search(e.target.value)}
           onFocus={() => { if (results.length) setOpen(true) }}
           onKeyDown={(e) => {
@@ -92,7 +94,7 @@ export default function MapSearch({ onGoto }: { onGoto: (r: GeoResult) => void }
             else if (e.key === 'Escape') clear()
           }}
         />
-        {q && <button className="clear" title="Clear" onClick={clear}>✕</button>}
+        {q && <button className="clear" title={t('mapSearch.clear')} onClick={clear}>✕</button>}
       </div>
       {open && results.length > 0 && (
         <div className="map-search-results">

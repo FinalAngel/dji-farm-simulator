@@ -7,6 +7,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { pythonExecutable, pythonRequirementsPath, venvDir, venvPython } from '../paths'
+import { mt } from '../i18n'
 
 export interface InstallResult {
   ok: boolean
@@ -33,32 +34,32 @@ function run(cmd: string, args: string[], onLog: (line: string) => void): Promis
 export async function installBackend(onLog: (line: string) => void): Promise<InstallResult> {
   const basePy = pythonExecutable()
   if (!basePy) {
-    return { ok: false, error: 'Python 3 was not found on your system. Install Python 3 (python.org), then run the installer again.' }
+    return { ok: false, error: mt('install.pythonNotFound') }
   }
   const reqs = pythonRequirementsPath()
-  if (!existsSync(reqs)) return { ok: false, error: 'Could not locate python/requirements.txt.' }
+  if (!existsSync(reqs)) return { ok: false, error: mt('install.noRequirements') }
 
   const venv = venvDir()
   const py = venvPython()
 
   try {
-    onLog(`▸ Using ${basePy}`)
-    onLog(`▸ Creating virtual environment at ${venv} …`)
+    onLog(mt('install.logUsing', { path: basePy }))
+    onLog(mt('install.logCreatingVenv', { venv }))
     let code = await run(basePy, ['-m', 'venv', venv], onLog)
-    if (code !== 0) return { ok: false, error: `Virtual environment creation failed (exit ${code}).` }
+    if (code !== 0) return { ok: false, error: mt('install.venvFailed', { code }) }
 
-    onLog('▸ Upgrading pip …')
+    onLog(mt('install.logUpgradingPip'))
     await run(py, ['-m', 'pip', 'install', '--upgrade', 'pip'], onLog)
 
-    onLog('▸ Installing ultralytics + OpenCV (this downloads PyTorch — can take several minutes) …')
+    onLog(mt('install.logInstalling'))
     code = await run(py, ['-m', 'pip', 'install', '-r', reqs], onLog)
-    if (code !== 0) return { ok: false, error: `pip install failed (exit ${code}). See the log above.` }
+    if (code !== 0) return { ok: false, error: mt('install.pipFailed', { code }) }
 
-    onLog('▸ Verifying the install …')
+    onLog(mt('install.logVerifying'))
     code = await run(py, ['-c', 'import ultralytics, cv2; print("imports OK")'], onLog)
-    if (code !== 0) return { ok: false, error: 'Packages installed but the import check failed.' }
+    if (code !== 0) return { ok: false, error: mt('install.importCheckFailed') }
 
-    onLog('✓ Detection engine installed.')
+    onLog(mt('install.done'))
     return { ok: true, pythonPath: py }
   } catch (e) {
     return { ok: false, error: (e as Error).message }

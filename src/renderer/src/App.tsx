@@ -15,6 +15,7 @@ import type {
 import { DEFAULT_MISSION_PARAMS } from "@shared/types";
 import { getDrone } from "@shared/camera";
 import { api } from "./api";
+import { useI18n } from "./i18n";
 import MapView, { CLASS_COLORS } from "./components/MapView";
 import FieldsView from "./components/FieldsView";
 import PlanView from "./components/PlanView";
@@ -24,6 +25,7 @@ import SettingsView from "./components/SettingsView";
 type View = "fields" | "plan" | "flights" | "settings";
 
 export default function App(): JSX.Element {
+  const { t, setLang } = useI18n();
   const [view, setView] = useState<View>("fields");
   const [basemap, setBasemap] = useState<"satellite" | "streets">("satellite");
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +106,7 @@ export default function App(): JSX.Element {
     api.settings.get().then((s) => {
       setSettings(s);
       setBasemap(s.defaultBasemap);
+      setLang(s.language); // reflect the persisted/auto-detected language
       if (!s.initialized) setView("settings"); // first run → onboarding
     });
     const offFlight = api.onFlightProgress((p) => {
@@ -145,6 +148,7 @@ export default function App(): JSX.Element {
   const updateSettings = (patch: Partial<AppSettings>): void => {
     setSettings((prev) => (prev ? { ...prev, ...patch } : prev));
     if (patch.defaultBasemap) setBasemap(patch.defaultBasemap); // reflect on the live map at once
+    if (patch.language) setLang(patch.language); // switch UI language at once
     pendingSettings.current = { ...pendingSettings.current, ...patch };
     if (settingsTimer.current) clearTimeout(settingsTimer.current);
     settingsTimer.current = setTimeout(async () => {
@@ -152,7 +156,7 @@ export default function App(): JSX.Element {
       pendingSettings.current = {};
       try {
         await api.settings.set(p);
-        showToast("Settings saved");
+        showToast(t("app.settingsSaved"));
       } catch {
         /* ignore */
       }
@@ -170,19 +174,14 @@ export default function App(): JSX.Element {
   };
 
   const resetApp = (): void => {
-    if (
-      !confirm(
-        "Reset the app? This permanently deletes all fields, flights, detections, settings and the installed detection engine, then starts fresh.",
-      )
-    )
-      return;
+    if (!confirm(t("confirm.reset"))) return;
     api.system.reset(); // main wipes everything and reloads the window
   };
 
   const installBackend = async (): Promise<void> => {
     if (installing) return;
     setInstalling(true);
-    setInstallLog(["Starting installation…"]);
+    setInstallLog([t("app.startingInstall")]);
     try {
       const res = await api.system.installBackend();
       if (res.ok) {
@@ -191,7 +190,7 @@ export default function App(): JSX.Element {
       } else {
         setInstallLog((l) => [
           ...l,
-          `✗ ${res.error ?? "Installation failed."}`,
+          `✗ ${res.error ?? t("app.installFailed")}`,
         ]);
       }
     } catch (e) {
@@ -305,8 +304,8 @@ export default function App(): JSX.Element {
     ];
     guard(async () => {
       const f = await api.fields.create({
-        name: "Demo meadow (Bern)",
-        notes: "Sample field for testing",
+        name: t("demo.name"),
+        notes: t("demo.notes"),
         polygon: demo,
       });
       await reloadFields();
@@ -316,7 +315,7 @@ export default function App(): JSX.Element {
   };
 
   const deleteField = (id: string): void => {
-    if (!confirm("Delete this field and its flights?")) return;
+    if (!confirm(t("confirm.deleteField"))) return;
     guard(async () => {
       await api.fields.remove(id);
       if (selectedId === id) setSelectedId(null);
@@ -365,7 +364,7 @@ export default function App(): JSX.Element {
   };
 
   const deleteFlight = (id: string): void => {
-    if (!confirm("Delete this flight?")) return;
+    if (!confirm(t("confirm.deleteFlight"))) return;
     guard(async () => {
       await api.flights.remove(id);
       setSelectedFlightId(null);
@@ -395,17 +394,17 @@ export default function App(): JSX.Element {
             className={view === "fields" ? "active" : ""}
             onClick={() => setView("fields")}
           >
-            Fields
+            {t("nav.fields")}
           </button>
           {/* Wrapper span carries the tooltip so it still shows while the button is disabled (disabled buttons swallow hover). */}
           <span
             className="tip"
             data-tip={
               drawing
-                ? "Save or cancel the field first"
+                ? t("topbar.tipSaveFirst")
                 : selectedId
                   ? undefined
-                  : "Select a field in the Fields tab first"
+                  : t("topbar.tipSelectField")
             }
           >
             <button
@@ -413,12 +412,12 @@ export default function App(): JSX.Element {
               onClick={() => setView("plan")}
               disabled={!selectedId || drawing}
             >
-              Plan &amp; Fly
+              {t("nav.planFly")}
             </button>
           </span>
           <span
             className="tip"
-            data-tip={drawing ? "Save or cancel the field first" : undefined}
+            data-tip={drawing ? t("topbar.tipSaveFirst") : undefined}
           >
             <button
               className={view === "flights" ? "active" : ""}
@@ -428,14 +427,14 @@ export default function App(): JSX.Element {
               }}
               disabled={drawing}
             >
-              Flights
+              {t("nav.flights")}
             </button>
           </span>
         </div>
         <div className="spacer" />
         <div
           className="aircraft-pill tip tip-end"
-          data-tip="Active drone — click for Settings"
+          data-tip={t("topbar.tipActiveDrone")}
           style={{ cursor: "pointer" }}
           onClick={() => goToSettings("drone")}
         >
@@ -447,19 +446,19 @@ export default function App(): JSX.Element {
             className={`backend-pill ${backend.kind} tip tip-end`}
             data-tip={
               backend.kind === "real"
-                ? "Real detection active — click for Settings"
-                : "Go to settings to install real detection."
+                ? t("topbar.tipRealActive")
+                : t("topbar.tipInstallReal")
             }
             style={{ cursor: "pointer" }}
             onClick={() => goToSettings("engine")}
           >
-            ● {backend.kind === "real" ? "Operational" : "Simulator"}
+            ● {backend.kind === "real" ? t("topbar.operational") : t("topbar.simulator")}
           </div>
         )}
         <button
           className={`ghost gear ${view === "settings" ? "active" : ""}`}
-          title="Settings"
-          aria-label="Settings"
+          title={t("common.settings")}
+          aria-label={t("common.settings")}
           onClick={() => setView("settings")}
         >
           ⚙
@@ -470,7 +469,7 @@ export default function App(): JSX.Element {
         <div className="sidebar">
           {error && (
             <div className="banner err" onClick={() => setError(null)}>
-              {error} <span className="muted">(click to dismiss)</span>
+              {error} <span className="muted">{t("app.dismissHint")}</span>
             </div>
           )}
 
@@ -567,13 +566,13 @@ export default function App(): JSX.Element {
               className={`small ${basemap === "satellite" ? "primary" : ""}`}
               onClick={() => setBasemap("satellite")}
             >
-              Satellite
+              {t("topbar.satellite")}
             </button>
             <button
               className={`small ${basemap === "streets" ? "primary" : ""}`}
               onClick={() => setBasemap("streets")}
             >
-              Map
+              {t("topbar.map")}
             </button>
           </div>
           {mapDetections && mapDetections.length > 0 && (
@@ -581,7 +580,7 @@ export default function App(): JSX.Element {
               {Object.entries(CLASS_COLORS).map(([cls, c]) => (
                 <div className="lg" key={cls}>
                   <span className="dot" style={{ background: c }} />
-                  {cls}
+                  {t(`cls.${cls}`)}
                 </div>
               ))}
             </div>

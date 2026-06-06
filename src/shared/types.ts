@@ -1,5 +1,7 @@
 // Shared domain types used by both the main process and the renderer.
 
+import type { Lang } from './i18n'
+
 export interface LngLat {
   lng: number
   lat: number
@@ -156,6 +158,8 @@ export interface AppSettings {
   pythonPath?: string
   /** Minimum detection confidence (0..1) passed to the detector. */
   minConfidence: number
+  /** UI language. Auto-detected from the OS locale on first run; changeable in Settings. */
+  language: Lang
   /** False until the first-run setup has been completed. */
   initialized: boolean
 }

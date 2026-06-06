@@ -9,6 +9,7 @@ import { generateMockDetections } from '../src/main/detection/mock'
 import { pixelToLngLat } from '../src/main/geo/geolocate'
 import { parseSrt, sampleAt } from '../src/main/detection/srt'
 import { DEFAULT_MISSION_PARAMS } from '../src/shared/types'
+import { translate, resolveLang } from '../src/shared/i18n'
 
 let failures = 0
 function check(name: string, cond: boolean, detail = ''): void {
@@ -89,6 +90,18 @@ check('SRT parsed two samples', samples.length === 2, `${samples.length}`)
 check('SRT sample has lat/lng/alt', samples[0].lat === 46.9475 && samples[0].lng === 7.422 && samples[0].altitude === 40)
 const near = sampleAt(samples, 1.4)
 check('sampleAt picks nearest', near?.timeS === 1)
+
+// 9. i18n
+check('i18n: English lookup', translate('en', 'nav.fields') === 'Fields')
+check('i18n: German lookup', translate('de', 'nav.fields') === 'Felder')
+check('i18n: interpolation', translate('en', 'fields.itemSub', { area: '7.12', points: 5 }) === '7.12 ha · 5 pts')
+check('i18n: plural one (en)', translate('en', 'flights.cows', { count: 1 }).includes('1 cow') && !translate('en', 'flights.cows', { count: 1 }).includes('cows'))
+check('i18n: plural other (en)', translate('en', 'flights.cows', { count: 3 }).includes('cows'))
+check('i18n: plural other (de)', translate('de', 'flights.cows', { count: 2 }).includes('Kühe'))
+check('i18n: French 0 is singular', translate('fr', 'flights.deer', { count: 0 }).endsWith('chevreuil'))
+check('i18n: unknown key surfaces itself', translate('it', 'nope.nope') === 'nope.nope')
+check('i18n: resolveLang maps region', resolveLang('de-CH') === 'de' && resolveLang('fr_FR') === 'fr')
+check('i18n: resolveLang falls back to en', resolveLang('es') === 'en' && resolveLang(undefined) === 'en')
 
 console.log(failures === 0 ? '\nALL PASS' : `\n${failures} FAILED`)
 process.exit(failures === 0 ? 0 : 1)

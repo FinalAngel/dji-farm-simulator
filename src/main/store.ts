@@ -7,6 +7,7 @@ import { join } from 'node:path'
 import type { AppSettings, Detection, Field, Flight } from '../shared/types'
 import { DEFAULT_MISSION_PARAMS } from '../shared/types'
 import { DEFAULT_DRONE_ID } from '../shared/camera'
+import { DEFAULT_LANG } from '../shared/i18n'
 import { dataDir } from './paths'
 
 class Collection<T extends { id: string }> {
@@ -106,6 +107,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   defaultParams: DEFAULT_MISSION_PARAMS,
   defaultBasemap: 'satellite',
   minConfidence: 0.4,
+  language: DEFAULT_LANG,
   initialized: false
 }
 
@@ -114,6 +116,10 @@ class SettingsStore {
   private data: AppSettings | null = null
   private path(): string {
     return join(dataDir(), 'settings.json')
+  }
+  /** True before the settings file has ever been written — i.e. the very first launch. */
+  exists(): boolean {
+    return existsSync(this.path())
   }
   get(): AppSettings {
     if (this.data) return this.data

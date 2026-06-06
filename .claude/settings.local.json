@@ -37,7 +37,13 @@
       "Bash(echo \"EXIT: $?\")",
       "Bash(LITOX1_SMOKE_EXIT=1 timeout 60 npm start)",
       "Bash(echo \"boot exit code: $?\")",
-      "Bash(echo \"npm run ci exit: $?\")"
+      "Bash(echo \"npm run ci exit: $?\")",
+      "Bash(grep -nA12 \"CLASS_COLORS\\\\s*[:=]\" src/renderer/src/components/MapView.tsx)",
+      "Bash(echo \"typecheck exit: $?\")",
+      "Bash(echo \"smoke exit: $?\")",
+      "Bash(echo \"build exit: $?\")",
+      "Bash(echo \"typecheck: $?\")",
+      "Bash(echo \"build: $?\")"
     ]
   }
 }

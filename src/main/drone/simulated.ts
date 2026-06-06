@@ -5,6 +5,7 @@
 import type { Field, Flight, FlightProgress } from '../../shared/types'
 import type { DroneController, FlyResult, ProgressFn } from './types'
 import { generateMockDetections } from '../detection/mock'
+import { mt } from '../i18n'
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -21,7 +22,7 @@ export class SimulatedController implements DroneController {
     const wps = flight.plan.waypoints
     const emit = (p: Omit<FlightProgress, 'flightId'>) => onProgress({ flightId: flight.id, ...p })
 
-    emit({ phase: 'takeoff', progress: 0, message: 'Arming and taking off…', position: wps[0] })
+    emit({ phase: 'takeoff', progress: 0, message: mt('sim.takeoff'), position: wps[0] })
     await sleep(400)
 
     // Compress the real ETA into a short, watchable animation (~6s total).
@@ -34,23 +35,23 @@ export class SimulatedController implements DroneController {
       emit({
         phase: 'scanning',
         progress: i / wps.length,
-        message: `Scanning strip ${Math.floor(i / 2) + 1}…`,
+        message: mt('sim.scanning', { n: Math.floor(i / 2) + 1 }),
         position: { lng: w.lng, lat: w.lat }
       })
       await sleep(frameDelay)
     }
 
-    emit({ phase: 'returning', progress: 0.97, message: 'Returning to home point…', position: wps[0] })
+    emit({ phase: 'returning', progress: 0.97, message: mt('sim.returning'), position: wps[0] })
     await sleep(400)
 
-    emit({ phase: 'analyzing', progress: 0.99, message: 'Analyzing footage for animals…' })
+    emit({ phase: 'analyzing', progress: 0.99, message: mt('sim.analyzing') })
     const detections = generateMockDetections(flight.id, field, flight.plan.estDurationS)
     await sleep(400)
 
     emit({
       phase: 'done',
       progress: 1,
-      message: `Landed. ${detections.length} animals detected.`,
+      message: mt('sim.landed', { count: detections.length }),
       position: wps[0],
       detectionsSoFar: detections.length
     })

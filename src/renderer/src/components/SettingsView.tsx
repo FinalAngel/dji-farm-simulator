@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import type { AppSettings, Basemap, DetectionBackendInfo, MissionParams } from '@shared/types'
 import { DRONES } from '@shared/camera'
+import { LANGS, type Lang } from '@shared/i18n'
+import { useI18n } from '../i18n'
 
 interface Props {
   settings: AppSettings
@@ -28,6 +30,7 @@ function Slider(props: { label: string; value: number; min: number; max: number;
 }
 
 export default function SettingsView(p: Props): JSX.Element {
+  const { t } = useI18n()
   const s = p.settings
   const setParam = (patch: Partial<MissionParams>): void => p.onChange({ defaultParams: { ...s.defaultParams, ...patch } })
   const ready = p.backend?.kind === 'real'
@@ -48,18 +51,32 @@ export default function SettingsView(p: Props): JSX.Element {
   return (
     <div>
       <div className="plan-head">
-        <div className="plan-name">{p.firstRun ? 'Welcome 👋 — set up your cockpit' : 'Settings'}</div>
+        <div className="plan-name">{p.firstRun ? t('settings.welcomeTitle') : t('settings.title')}</div>
         <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>
-          {p.firstRun
-            ? 'Pick the drone you fly and review the detection engine. You can change all of this later from the ⚙ button.'
-            : 'Configure your aircraft, detection engine and defaults.'}
+          {p.firstRun ? t('settings.welcomeSub') : t('settings.sub')}
         </div>
       </div>
 
+      {p.firstRun && (
+        <button className="primary" style={{ width: '100%', marginBottom: 14 }} onClick={p.onFinish}>
+          {t('settings.getStarted')}
+        </button>
+      )}
+
+      <div className="card">
+        <h3>{t('settings.language')}</h3>
+        <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>{t('settings.languageHelp')}</div>
+        <select value={s.language} onChange={(e) => p.onChange({ language: e.target.value as Lang })}>
+          {LANGS.map((l) => (
+            <option key={l.code} value={l.code}>{l.label}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="card" ref={droneRef}>
-        <h3>Your drone</h3>
+        <h3>{t('settings.yourDrone')}</h3>
         <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>
-          Drives coverage spacing, flight-time estimates and pixel→ground geolocation.
+          {t('settings.droneHelp')}
         </div>
         <div className="drone-list">
           {DRONES.map((d) => (
@@ -70,9 +87,9 @@ export default function SettingsView(p: Props): JSX.Element {
             >
               <div className="drone-top">
                 <div className="name">{d.id === s.droneId ? '◉' : '○'} {d.name}</div>
-                <span className={`badge ${d.msdk ? 'flying' : 'simulated'}`}>{d.msdk ? 'MSDK' : 'No SDK'}</span>
+                <span className={`badge ${d.msdk ? 'flying' : 'simulated'}`}>{d.msdk ? t('settings.badgeMsdk') : t('settings.badgeNoSdk')}</span>
               </div>
-              <div className="drone-specs muted">~{d.usableFlightMinutes} min usable · {d.hfovDeg}°×{d.vfovDeg}° FOV · {(d.videoWidth)}×{d.videoHeight}</div>
+              <div className="drone-specs muted">{t('settings.droneSpecs', { min: d.usableFlightMinutes, hfov: d.hfovDeg, vfov: d.vfovDeg, w: d.videoWidth, h: d.videoHeight })}</div>
               <div className="drone-note muted">{d.note}</div>
             </div>
           ))}
@@ -80,28 +97,25 @@ export default function SettingsView(p: Props): JSX.Element {
       </div>
 
       <div className="card" ref={engineRef}>
-        <h3>Detection engine</h3>
+        <h3>{t('settings.detectionEngine')}</h3>
         <div className={`banner ${ready ? 'ok' : 'warn'}`}>
-          <strong>{ready ? '● Real detection active' : '● Simulator (mock detections)'}</strong>
-          <div style={{ marginTop: 4 }}>{p.backend?.detail ?? 'Checking…'}</div>
+          <strong>{ready ? t('settings.realActive') : t('settings.simulatorMock')}</strong>
+          <div style={{ marginTop: 4 }}>{p.backend?.detail ?? t('settings.checking')}</div>
         </div>
         <div className="help" style={{ marginTop: 0 }}>
-          The <strong>Simulator</strong> generates synthetic, seeded counts so you can try the whole workflow with no setup —
-          it powers “Simulate flight”. <strong>Ultralytics</strong> runs real object detection on imported flight
-          video: cows count well; deer is RGB best-effort.
+          {t('settings.engineHelp')}
         </div>
 
         {!ready && (
           <>
             <div style={{ height: 12 }} />
             <button className="primary" style={{ width: '100%' }} disabled={p.installing} onClick={p.onInstall}>
-              {p.installing ? '⏳ Installing… keep the app open' : '⬇ Install detection engine'}
+              {p.installing ? t('settings.installing') : t('settings.installEngine')}
             </button>
             <div style={{ height: 8 }} />
-            <button className="small" style={{ width: '100%' }} disabled={p.busy || p.installing} onClick={p.onRecheckBackend}>↻ Re-check engine</button>
+            <button className="small" style={{ width: '100%' }} disabled={p.busy || p.installing} onClick={p.onRecheckBackend}>{t('settings.recheck')}</button>
             <div className="help">
-              Sets everything up inside the app — creates a Python environment and downloads Ultralytics + OpenCV
-              (~1 GB, a few minutes). Requires Python 3 on your system.
+              {t('settings.installHelp')}
             </div>
           </>
         )}
@@ -111,28 +125,28 @@ export default function SettingsView(p: Props): JSX.Element {
         )}
 
         <div style={{ height: 14 }} />
-        <Slider label="Detection confidence" value={Math.round(s.minConfidence * 100)} min={10} max={90} step={5} unit=" %"
+        <Slider label={t('settings.confidence')} value={Math.round(s.minConfidence * 100)} min={10} max={90} step={5} unit=" %"
           onChange={(v) => p.onChange({ minConfidence: v / 100 })} />
-        <div className="help" style={{ marginTop: 0 }}>Lower catches more animals but adds false positives; higher is stricter.</div>
+        <div className="help" style={{ marginTop: 0 }}>{t('settings.confidenceHelp')}</div>
       </div>
 
       <div className="card">
-        <h3>Default flight parameters</h3>
-        <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>Applied to a new field until you tune it in Plan &amp; Fly.</div>
-        <Slider label="Altitude (AGL)" value={s.defaultParams.altitude} min={15} max={120} step={1} unit=" m" onChange={(v) => setParam({ altitude: v })} />
-        <Slider label="Speed" value={s.defaultParams.speed} min={2} max={15} step={0.5} unit=" m/s" onChange={(v) => setParam({ speed: v })} />
-        <Slider label="Side overlap" value={Math.round(s.defaultParams.sidelap * 100)} min={0} max={80} step={5} unit=" %" onChange={(v) => setParam({ sidelap: v / 100 })} />
-        <Slider label="Sweep angle" value={s.defaultParams.angleDeg} min={0} max={179} step={1} unit="°" onChange={(v) => setParam({ angleDeg: v })} />
-        <Slider label="Edge margin" value={s.defaultParams.marginM} min={0} max={20} step={1} unit=" m" onChange={(v) => setParam({ marginM: v })} />
+        <h3>{t('settings.defaultParams')}</h3>
+        <div className="muted" style={{ fontSize: 12, marginBottom: 10 }}>{t('settings.defaultParamsHelp')}</div>
+        <Slider label={t('params.altitude')} value={s.defaultParams.altitude} min={15} max={120} step={1} unit=" m" onChange={(v) => setParam({ altitude: v })} />
+        <Slider label={t('params.speed')} value={s.defaultParams.speed} min={2} max={15} step={0.5} unit=" m/s" onChange={(v) => setParam({ speed: v })} />
+        <Slider label={t('params.sideOverlap')} value={Math.round(s.defaultParams.sidelap * 100)} min={0} max={80} step={5} unit=" %" onChange={(v) => setParam({ sidelap: v / 100 })} />
+        <Slider label={t('params.sweepAngle')} value={s.defaultParams.angleDeg} min={0} max={179} step={1} unit="°" onChange={(v) => setParam({ angleDeg: v })} />
+        <Slider label={t('params.edgeMargin')} value={s.defaultParams.marginM} min={0} max={20} step={1} unit=" m" onChange={(v) => setParam({ marginM: v })} />
       </div>
 
       <div className="card">
-        <h3>Map</h3>
-        <label>Default basemap</label>
+        <h3>{t('settings.map')}</h3>
+        <label>{t('settings.defaultBasemap')}</label>
         <div className="segmented full">
           {(['satellite', 'streets'] as Basemap[]).map((b) => (
             <button key={b} className={s.defaultBasemap === b ? 'active' : ''} onClick={() => p.onChange({ defaultBasemap: b })}>
-              {b === 'satellite' ? 'Satellite' : 'Map'}
+              {b === 'satellite' ? t('topbar.satellite') : t('topbar.map')}
             </button>
           ))}
         </div>
@@ -140,20 +154,14 @@ export default function SettingsView(p: Props): JSX.Element {
 
       {!p.firstRun && (
         <div className="card">
-          <h3>Reset</h3>
+          <h3>{t('settings.reset')}</h3>
           <div className="muted" style={{ fontSize: 12, marginBottom: 12 }}>
-            Permanently delete all fields, flights, detections, settings and the installed detection engine, then start fresh.
+            {t('settings.resetHelp')}
           </div>
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button className="danger small" onClick={p.onReset}>Reset app &amp; delete all data</button>
+            <button className="danger small" onClick={p.onReset}>{t('settings.resetButton')}</button>
           </div>
         </div>
-      )}
-
-      {p.firstRun && (
-        <button className="primary" style={{ width: '100%' }} onClick={p.onFinish}>
-          Get started →
-        </button>
       )}
     </div>
   )

@@ -15,6 +15,7 @@ import type { CameraSpec } from "../../shared/camera";
 import { pixelToLngLat } from "../geo/geolocate";
 import { parseSrt, sampleAt } from "./srt";
 import { pythonExecutable, pythonScriptPath } from "../paths";
+import { mt } from "../i18n";
 
 // COCO classes the model can emit → our taxonomy. Deer is NOT in COCO; a custom
 // model is required for reliable fawn/deer detection (see README).
@@ -43,8 +44,7 @@ export async function checkBackend(
     return {
       available: false,
       kind: "mock",
-      detail:
-        "Python 3 not found. Set a Python path in Settings, or use the built-in simulator.",
+      detail: mt("backend.pythonNotFound"),
     };
   }
   const ok = await new Promise<boolean>((resolve) => {
@@ -53,12 +53,11 @@ export async function checkBackend(
     p.on("close", (code) => resolve(code === 0));
   });
   return ok
-    ? { available: true, kind: "real", detail: `Ultralytics detector ready.` }
+    ? { available: true, kind: "real", detail: mt("backend.ready") }
     : {
         available: false,
         kind: "mock",
-        detail:
-          "Python found, but the packages aren’t installed yet. Use “Install detection engine” below.",
+        detail: mt("backend.packagesMissing"),
       };
 }
 
@@ -77,9 +76,7 @@ export async function analyzeVideo(
   const py = pythonExecutable(opts.pythonPath);
   const script = pythonScriptPath();
   if (!py || !existsSync(script)) {
-    throw new Error(
-      "Detection backend unavailable. Install the packages from Settings, or use Simulate.",
-    );
+    throw new Error(mt("backend.unavailable"));
   }
 
   const args = [

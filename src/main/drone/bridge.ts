@@ -9,6 +9,7 @@
 
 import type { Field, Flight, FlightProgress } from '../../shared/types'
 import type { DroneController, FlyResult, ProgressFn } from './types'
+import { mt } from '../i18n'
 
 export interface BridgeConfig {
   /** Base URL of the companion REST server, e.g. http://192.168.1.50:8080 */
@@ -27,7 +28,7 @@ export class BridgeController implements DroneController {
   constructor(private config: BridgeConfig) {}
 
   async available() {
-    if (!this.config.baseUrl) return { ok: false, reason: 'No bridge URL configured.' }
+    if (!this.config.baseUrl) return { ok: false, reason: mt('bridge.noUrl') }
     try {
       const res = await fetch(new URL('/status', this.config.baseUrl), { signal: AbortSignal.timeout(2500) })
       if (!res.ok) return { ok: false, reason: `Bridge responded ${res.status}.` }
@@ -44,14 +45,14 @@ export class BridgeController implements DroneController {
 
   async fly(_field: Field, flight: Flight, onProgress: ProgressFn): Promise<FlyResult> {
     const avail = await this.available()
-    if (!avail.ok) throw new Error(avail.reason ?? 'Bridge unavailable')
+    if (!avail.ok) throw new Error(avail.reason ?? mt('bridge.unavailable'))
 
     const emit = (p: Omit<FlightProgress, 'flightId'>) => onProgress({ flightId: flight.id, ...p })
     const base = this.config.baseUrl
 
     // Upload the mission as waypoints, then start it. (Endpoint names follow the
     // DJIControlServer convention; adapt to your companion app's actual API.)
-    emit({ phase: 'takeoff', progress: 0, message: 'Uploading mission to companion…' })
+    emit({ phase: 'takeoff', progress: 0, message: mt('bridge.uploading') })
     await this.post('/mission/upload', { waypoints: flight.plan.waypoints, finishAction: 'goHome' })
     await this.post('/mission/start', {})
 
@@ -68,7 +69,7 @@ export class BridgeController implements DroneController {
       await new Promise((r) => setTimeout(r, 1000))
     }
 
-    emit({ phase: 'done', progress: 1, message: 'Mission complete. Import the SD-card video to analyze.' })
+    emit({ phase: 'done', progress: 1, message: mt('bridge.complete') })
     // Live video frames could be analyzed in real time; for now detections come from
     // the post-flight video-import pipeline, identical to the offline path.
     return { detections: [], detectionBackend: 'Live bridge (analyze video post-flight)' }
