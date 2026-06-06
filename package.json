@@ -4,6 +4,10 @@
   "description": "Desktop cockpit to plan DJI coverage flights over farm fields, export DJI/Litchi missions, and count cows / flag deer from the footage.",
   "author": "Angelo <angelo.dini@devguard.ch>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FinalAngel/dji-farm-simulator.git"
+  },
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",

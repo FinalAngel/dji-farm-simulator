@@ -127,13 +127,31 @@ npm run dist         # installers for the current OS (.dmg/.zip, .exe, .AppImage
 
 The bundled `python/` detector ships as an `extraResource`, so the in-app installer works in a packaged build too (the venv is created in the per-user data directory).
 
-To cut a cross-platform release, push a tag — the **Release** workflow builds and uploads installers for macOS, Windows and Linux:
+### Cutting a cross-platform release
+
+The **Release** workflow (`.github/workflows/release.yml`) builds installers for
+macOS, Windows and Linux and publishes a **GitHub Release** with all of them
+attached (`.dmg`/`.zip`, `.exe`, `.AppImage`). Two ways to trigger it:
 
 ```bash
-git tag v0.1.0 && git push --tags
+# 1. Push a version tag
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
-> Code-signing/notarization isn't configured; add your certs to the electron-builder config and CI secrets for distributable, signed builds.
+```text
+# 2. Or run it manually: GitHub → Actions → Release → "Run workflow",
+#    enter a version like v0.2.0 — it creates and pushes the tag for you.
+```
+
+The pipeline runs in three stages: **prepare** (resolve/create the tag) →
+**build** (package on each OS in parallel) → **release** (collect every OS's
+installers and publish the Release). A tag containing a hyphen (e.g.
+`v0.2.0-beta.1`) is published as a pre-release. Release notes are generated
+automatically from the commits since the previous tag.
+
+> Code-signing/notarization isn't configured — CI builds unsigned
+> (`CSC_IDENTITY_AUTO_DISCOVERY=false`). Add your certs to the electron-builder
+> config and CI secrets for distributable, signed builds.
 
 ## ✅ Continuous integration
 
