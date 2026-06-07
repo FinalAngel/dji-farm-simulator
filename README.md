@@ -1,22 +1,63 @@
-<div align="center">
+<p align="center">
+  <a href="https://github.com/FinalAngel/dji-farm-simulator">
+    <img src="assets/logo.svg" alt="DJI Farm Simulator" width="124">
+  </a>
+</p>
 
-# 🚁 DJI Farm Simulator
+<h1 align="center">DJI Farm Simulator</h1>
 
-**Plan coverage flights over farm fields, export DJI-ready missions, and count cows / flag deer from the footage.**
+<p align="center">
+  <strong>Plan coverage flights over farm fields, export DJI-ready missions, and count cows / flag deer from the footage.</strong>
+  <br />
+  Draw a field → generate an optimal coverage path → fly it in DJI Fly → import the footage → get geolocated animal counts and a deer-safety alert.
+  <br />
+  <br />
+  <a href="#-download"><strong>Download »</strong></a>
+  <br />
+  <br />
+  <a href="#-download">Download</a>
+  ·
+  <a href="#-features">Features</a>
+  ·
+  <a href="#-development">Development</a>
+  ·
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/issues">Issues</a>
+  ·
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/releases">Releases</a>
+</p>
 
-Draw a field on a map → generate an optimal coverage path → export a DJI-importable mission → fly it in DJI Fly → import the recorded footage → get geolocated animal counts, a deer-safety alert, and a stored flight history with the video for reference.
+<p align="center">
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/releases/latest"><img src="https://img.shields.io/github/v/release/FinalAngel/dji-farm-simulator?sort=semver&display_name=tag&label=latest&color=4cc2ff" alt="Latest release"></a>
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/releases"><img src="https://img.shields.io/github/downloads/FinalAngel/dji-farm-simulator/total?color=2f7d4f&label=downloads" alt="Downloads"></a>
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/actions/workflows/ci.yml"><img src="https://github.com/FinalAngel/dji-farm-simulator/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/stargazers"><img src="https://img.shields.io/github/stars/FinalAngel/dji-farm-simulator?color=f4a261" alt="Stars"></a>
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+</p>
 
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Electron](https://img.shields.io/badge/Electron-31-47848F?logo=electron&logoColor=white)
-![Platforms](https://img.shields.io/badge/platform-macOS%20·%20Windows%20·%20Linux-lightgrey)
-![No native modules](https://img.shields.io/badge/npm%20install-painless-success)
-
-<!-- Once pushed to GitHub, replace OWNER/REPO to enable the live status badge:
-![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg) -->
-
-</div>
+<p align="center">
+  <img src="assets/screenshot.png" alt="DJI Farm Simulator — Plan & Fly view with coverage path and detections" width="880">
+</p>
 
 > The focus is the **DJI Lito X1** (the drone in use), but you pick your aircraft in Settings from a catalog of DJI drones, and the camera/airframe specs drive the planning math.
+
+---
+
+## 📥 Download
+
+Grab the latest build for your platform — no account or build tools needed:
+
+<p align="center">
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/releases/latest/download/dji-farm-simulator-mac-arm64.dmg"><img src="https://img.shields.io/badge/Download-macOS%20(Apple%20Silicon)-000000?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS"></a>
+  &nbsp;
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/releases/latest/download/dji-farm-simulator-win-x64.exe"><img src="https://img.shields.io/badge/Download-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
+  &nbsp;
+  <a href="https://github.com/FinalAngel/dji-farm-simulator/releases/latest/download/dji-farm-simulator-linux-x64.AppImage"><img src="https://img.shields.io/badge/Download-Linux%20(AppImage)-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Download for Linux"></a>
+</p>
+
+<p align="center"><sub>All versions and the macOS <code>.zip</code> are on the <a href="https://github.com/FinalAngel/dji-farm-simulator/releases">Releases page</a>.</sub></p>
+
+> [!NOTE]
+> Builds are **not code-signed** yet. On macOS, right-click the app → **Open** (or `xattr -dr com.apple.quarantine "DJI Farm Simulator.app"`); on Windows, click **More info → Run anyway** at the SmartScreen prompt.
 
 ---
 
@@ -51,9 +92,9 @@ Draw field ─► Plan coverage ─► Export (.kmz/.csv) ─► DJI Fly: import
 
 ---
 
-## 🚀 Installation & launch
+## 🚀 Run from source
 
-**Requirements:** [Node.js](https://nodejs.org) 18+ (20 recommended). No native modules — `npm install` is painless.
+Prefer to build it yourself, or on a platform without a prebuilt download? **Requirements:** [Node.js](https://nodejs.org) 18+ (20 recommended). No native modules — `npm install` is painless.
 
 ```bash
 git clone <your-fork-url> dji-farm-simulator

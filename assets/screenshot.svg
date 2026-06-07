@@ -1,0 +1,147 @@
+<svg width="1600" height="1600" viewBox="0 0 1600 1600" fill="none" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="map" x1="600" y1="120" x2="1600" y2="1000" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#16222b"/>
+      <stop offset="1" stop-color="#0e161d"/>
+    </linearGradient>
+    <linearGradient id="fieldg" x1="820" y1="320" x2="1300" y2="780" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f7d4f"/><stop offset="1" stop-color="#1f5d3a"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="0" y2="1" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7ad4ff"/><stop offset="1" stop-color="#4cc2ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Square canvas (QuickLook squares the output); the 16:10 window is centred
+       at y=300..1300 so a centred crop to 1600x1000 recovers it exactly. -->
+  <rect width="1600" height="1600" fill="#0f1419"/>
+  <g transform="translate(0,300)">
+
+  <!-- Window -->
+  <rect width="1600" height="1000" rx="14" fill="#0f1419"/>
+
+  <!-- ===== Top bar ===== -->
+  <rect x="0" y="0" width="1600" height="64" fill="#121922"/>
+  <line x1="0" y1="64" x2="1600" y2="64" stroke="#243441" stroke-width="1"/>
+  <text x="28" y="40" fill="#e6edf3" font-size="19" font-weight="700">DJI <tspan fill="#4cc2ff">Farm</tspan> Simulator</text>
+
+  <!-- Segmented nav -->
+  <rect x="250" y="16" width="330" height="34" rx="9" fill="#0f1419" stroke="#243441"/>
+  <rect x="254" y="20" width="96" height="26" rx="7" fill="#1c2e3a"/>
+  <text x="302" y="38" fill="#9fb0bd" font-size="13" text-anchor="middle">Fields</text>
+  <rect x="352" y="20" width="120" height="26" rx="7" fill="#16324a"/>
+  <text x="412" y="38" fill="#eaf6ff" font-size="13" font-weight="600" text-anchor="middle">Plan &amp; Fly</text>
+  <text x="528" y="38" fill="#9fb0bd" font-size="13" text-anchor="middle">Flights</text>
+
+  <!-- Right pills -->
+  <rect x="1208" y="16" width="150" height="34" rx="17" fill="#0f1419" stroke="#243441"/>
+  <circle cx="1228" cy="33" r="5" fill="#4cc2ff"/>
+  <text x="1242" y="38" fill="#cdd9e3" font-size="13">DJI Lito X1</text>
+  <rect x="1368" y="16" width="148" height="34" rx="17" fill="#10271b" stroke="#1f5d3a"/>
+  <circle cx="1388" cy="33" r="5" fill="#41d784"/>
+  <text x="1402" y="38" fill="#7fe3a8" font-size="13">Operational</text>
+  <text x="1548" y="40" fill="#8b98a5" font-size="22" text-anchor="middle">⚙</text>
+
+  <!-- ===== Sidebar ===== -->
+  <rect x="0" y="64" width="384" height="936" fill="#121922"/>
+  <line x1="384" y1="64" x2="384" y2="1000" stroke="#243441" stroke-width="1"/>
+
+  <!-- Field header -->
+  <rect x="20" y="84" width="344" height="64" rx="10" fill="#161f28" stroke="#243441"/>
+  <text x="36" y="116" fill="#e6edf3" font-size="17" font-weight="700">North meadow</text>
+  <text x="36" y="136" fill="#8b98a5" font-size="12">7.12 ha · 5 boundary points</text>
+
+  <!-- Segmented (Parameters / Export & Fly) -->
+  <rect x="20" y="160" width="344" height="34" rx="9" fill="#0f1419" stroke="#243441"/>
+  <rect x="24" y="164" width="168" height="26" rx="7" fill="#16324a"/>
+  <text x="108" y="182" fill="#eaf6ff" font-size="13" font-weight="600" text-anchor="middle">Parameters</text>
+  <text x="278" y="182" fill="#9fb0bd" font-size="13" text-anchor="middle">Export &amp; Fly</text>
+
+  <!-- Flight parameters card -->
+  <rect x="20" y="206" width="344" height="232" rx="10" fill="#161f28" stroke="#243441"/>
+  <text x="36" y="232" fill="#8b98a5" font-size="12" font-weight="700" letter-spacing="0.6">FLIGHT PARAMETERS</text>
+  <!-- sliders -->
+  <g font-size="12">
+    <text x="36" y="262" fill="#cdd9e3">Altitude (AGL)</text><text x="348" y="262" fill="#4cc2ff" text-anchor="end">60 m</text>
+    <rect x="36" y="270" width="312" height="5" rx="2.5" fill="#243441"/><rect x="36" y="270" width="150" height="5" rx="2.5" fill="url(#acc)"/><circle cx="186" cy="272.5" r="8" fill="#eaf6ff"/>
+    <text x="36" y="300" fill="#cdd9e3">Speed</text><text x="348" y="300" fill="#4cc2ff" text-anchor="end">6 m/s</text>
+    <rect x="36" y="308" width="312" height="5" rx="2.5" fill="#243441"/><rect x="36" y="308" width="120" height="5" rx="2.5" fill="url(#acc)"/><circle cx="156" cy="310.5" r="8" fill="#eaf6ff"/>
+    <text x="36" y="338" fill="#cdd9e3">Side overlap</text><text x="348" y="338" fill="#4cc2ff" text-anchor="end">70 %</text>
+    <rect x="36" y="346" width="312" height="5" rx="2.5" fill="#243441"/><rect x="36" y="346" width="220" height="5" rx="2.5" fill="url(#acc)"/><circle cx="256" cy="348.5" r="8" fill="#eaf6ff"/>
+    <text x="36" y="376" fill="#cdd9e3">Sweep angle</text><text x="348" y="376" fill="#4cc2ff" text-anchor="end">12°</text>
+    <rect x="36" y="384" width="312" height="5" rx="2.5" fill="#243441"/><rect x="36" y="384" width="40" height="5" rx="2.5" fill="url(#acc)"/><circle cx="76" cy="386.5" r="8" fill="#eaf6ff"/>
+    <text x="36" y="414" fill="#cdd9e3">Edge margin</text><text x="348" y="414" fill="#4cc2ff" text-anchor="end">5 m</text>
+    <rect x="36" y="422" width="312" height="5" rx="2.5" fill="#243441"/><rect x="36" y="422" width="80" height="5" rx="2.5" fill="url(#acc)"/><circle cx="116" cy="424.5" r="8" fill="#eaf6ff"/>
+  </g>
+
+  <!-- Flight estimate card -->
+  <rect x="20" y="450" width="344" height="196" rx="10" fill="#161f28" stroke="#243441"/>
+  <text x="36" y="476" fill="#8b98a5" font-size="12" font-weight="700" letter-spacing="0.6">FLIGHT ESTIMATE</text>
+  <g>
+    <rect x="36" y="488" width="150" height="62" rx="8" fill="#0f1419" stroke="#243441"/>
+    <text x="48" y="522" fill="#e6edf3" font-size="20" font-weight="700">5m 05s</text><text x="48" y="540" fill="#8b98a5" font-size="11">Est. flight time</text>
+    <rect x="198" y="488" width="150" height="62" rx="8" fill="#0f1419" stroke="#243441"/>
+    <text x="210" y="522" fill="#e6edf3" font-size="20" font-weight="700">2.16 km</text><text x="210" y="540" fill="#8b98a5" font-size="11">Path length</text>
+    <rect x="36" y="558" width="150" height="62" rx="8" fill="#0f1419" stroke="#243441"/>
+    <text x="48" y="592" fill="#e6edf3" font-size="20" font-weight="700">46</text><text x="48" y="610" fill="#8b98a5" font-size="11">Waypoints</text>
+    <rect x="198" y="558" width="150" height="62" rx="8" fill="#0f1419" stroke="#243441"/>
+    <text x="210" y="592" fill="#e6edf3" font-size="20" font-weight="700">21 m</text><text x="210" y="610" fill="#8b98a5" font-size="11">Strip spacing</text>
+  </g>
+
+  <!-- info banner -->
+  <rect x="20" y="658" width="344" height="54" rx="8" fill="#10222e" stroke="#1c3a4c"/>
+  <text x="36" y="682" fill="#9fcfe6" font-size="12">Footprint 53 m wide · est. 19% of one battery.</text>
+  <text x="36" y="700" fill="#9fcfe6" font-size="12">Fly in VLOS (EASA/BAZL open category).</text>
+
+  <!-- ===== Map ===== -->
+  <rect x="384" y="64" width="1216" height="936" fill="url(#map)"/>
+  <!-- faint grid -->
+  <g stroke="#1b2832" stroke-width="1" opacity="0.6">
+    <line x1="540" y1="64" x2="540" y2="1000"/><line x1="720" y1="64" x2="720" y2="1000"/>
+    <line x1="900" y1="64" x2="900" y2="1000"/><line x1="1080" y1="64" x2="1080" y2="1000"/>
+    <line x1="1260" y1="64" x2="1260" y2="1000"/><line x1="1440" y1="64" x2="1440" y2="1000"/>
+    <line x1="384" y1="240" x2="1600" y2="240"/><line x1="384" y1="430" x2="1600" y2="430"/>
+    <line x1="384" y1="620" x2="1600" y2="620"/><line x1="384" y1="810" x2="1600" y2="810"/>
+  </g>
+
+  <!-- Field polygon -->
+  <path d="M780 300 L1320 250 L1360 720 L840 800 Z" fill="url(#fieldg)" fill-opacity="0.55" stroke="#46c07e" stroke-width="3"/>
+
+  <!-- Boustrophedon coverage path -->
+  <clipPath id="plot2"><path d="M780 300 L1320 250 L1360 720 L840 800 Z"/></clipPath>
+  <g clip-path="url(#plot2)" stroke="url(#acc)" stroke-width="3.5" fill="none" opacity="0.95">
+    <path d="M840 350 H1300 V410 H840 V470 H1300 V530 H840 V590 H1300 V650 H840 V710 H1300"/>
+  </g>
+  <!-- home + waypoints -->
+  <circle cx="840" cy="350" r="7" fill="#eafaff" stroke="#4cc2ff" stroke-width="2"/>
+  <g fill="#eafaff" opacity="0.9">
+    <circle cx="1300" cy="410" r="4"/><circle cx="840" cy="470" r="4"/><circle cx="1300" cy="530" r="4"/>
+    <circle cx="840" cy="590" r="4"/><circle cx="1300" cy="650" r="4"/><circle cx="840" cy="710" r="4"/>
+  </g>
+
+  <!-- Detection markers -->
+  <g>
+    <circle cx="980" cy="430" r="10" fill="#f4a261" stroke="#0f1419" stroke-width="2"/>
+    <circle cx="1080" cy="560" r="10" fill="#f4a261" stroke="#0f1419" stroke-width="2"/>
+    <circle cx="1180" cy="470" r="10" fill="#f4a261" stroke="#0f1419" stroke-width="2"/>
+    <circle cx="930" cy="640" r="10" fill="#f4a261" stroke="#0f1419" stroke-width="2"/>
+    <circle cx="1240" cy="600" r="11" fill="#ff4d4d" stroke="#0f1419" stroke-width="2"/>
+  </g>
+
+  <!-- Live aircraft -->
+  <circle cx="1100" cy="470" r="16" fill="#4cc2ff" fill-opacity="0.2" stroke="#4cc2ff"/>
+  <circle cx="1100" cy="470" r="6" fill="#4cc2ff"/>
+
+  <!-- Legend -->
+  <rect x="412" y="876" width="168" height="104" rx="8" fill="#0f1419" fill-opacity="0.86" stroke="#243441"/>
+  <circle cx="432" cy="908" r="6" fill="#f4a261"/><text x="448" y="912" fill="#cdd9e3" font-size="13">cow</text>
+  <circle cx="432" cy="936" r="6" fill="#ff4d4d"/><text x="448" y="940" fill="#cdd9e3" font-size="13">deer</text>
+  <circle cx="432" cy="964" r="6" fill="#4cc2ff"/><text x="448" y="968" fill="#cdd9e3" font-size="13">aircraft</text>
+
+  <!-- Basemap toggle -->
+  <rect x="1392" y="84" width="180" height="34" rx="8" fill="#0f1419" fill-opacity="0.86" stroke="#243441"/>
+  <rect x="1396" y="88" width="86" height="26" rx="6" fill="#16324a"/>
+  <text x="1439" y="106" fill="#eaf6ff" font-size="12" text-anchor="middle">Satellite</text>
+  <text x="1527" y="106" fill="#9fb0bd" font-size="12" text-anchor="middle">Map</text>
+  </g>
+</svg>

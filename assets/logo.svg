@@ -1,0 +1,54 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0f1419"/>
+      <stop offset="1" stop-color="#16222e"/>
+    </linearGradient>
+    <linearGradient id="field" x1="232" y1="430" x2="792" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2f7d4f"/>
+      <stop offset="1" stop-color="#1f5d3a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7ad4ff"/>
+      <stop offset="1" stop-color="#4cc2ff"/>
+    </linearGradient>
+  </defs>
+
+  <!-- App-icon rounded square -->
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="url(#bg)"/>
+  <rect x="6" y="6" width="1012" height="1012" rx="222" fill="none" stroke="#2a3b49" stroke-width="12"/>
+
+  <!-- The field (a tilted plot) -->
+  <path d="M250 470 L780 430 L800 860 L300 905 Z" fill="url(#field)" stroke="#3da06a" stroke-width="10" stroke-linejoin="round"/>
+
+  <!-- Boustrophedon coverage path clipped to the field -->
+  <clipPath id="plot">
+    <path d="M250 470 L780 430 L800 860 L300 905 Z"/>
+  </clipPath>
+  <g clip-path="url(#plot)" stroke="url(#accent)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.95">
+    <path d="M300 540 H760 V610 H300 V680 H760 V750 H300 V820 H760"/>
+  </g>
+  <!-- Waypoint dots at the row ends -->
+  <g fill="#eafaff">
+    <circle cx="300" cy="540" r="14"/><circle cx="760" cy="610" r="14"/>
+    <circle cx="300" cy="680" r="14"/><circle cx="760" cy="750" r="14"/>
+    <circle cx="300" cy="820" r="14"/>
+  </g>
+
+  <!-- Drone (top-down quadcopter) hovering over the field -->
+  <g stroke="#dfeefc" stroke-width="26" stroke-linecap="round">
+    <line x1="512" y1="250" x2="380" y2="150"/>
+    <line x1="512" y1="250" x2="644" y2="150"/>
+    <line x1="512" y1="312" x2="380" y2="412"/>
+    <line x1="512" y1="312" x2="644" y2="412"/>
+  </g>
+  <g fill="#0f1419" stroke="#dfeefc" stroke-width="18">
+    <circle cx="372" cy="150" r="46"/>
+    <circle cx="652" cy="150" r="46"/>
+    <circle cx="372" cy="412" r="46"/>
+    <circle cx="652" cy="412" r="46"/>
+  </g>
+  <!-- Drone body + nadir camera -->
+  <rect x="452" y="221" width="120" height="120" rx="34" fill="#1b2a36" stroke="#dfeefc" stroke-width="20"/>
+  <circle cx="512" cy="281" r="30" fill="url(#accent)"/>
+</svg>

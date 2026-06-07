@@ -58,17 +58,20 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
+      "artifactName": "dji-farm-simulator-mac-${arch}.${ext}",
       "target": [
         "dmg",
         "zip"
       ]
     },
     "win": {
+      "artifactName": "dji-farm-simulator-win-${arch}.${ext}",
       "target": [
         "nsis"
       ]
     },
     "linux": {
+      "artifactName": "dji-farm-simulator-linux-${arch}.${ext}",
       "target": [
         "AppImage"
       ],
